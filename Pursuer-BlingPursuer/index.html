@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2인용 검싸움 - 노을의 결투</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #222; font-family: sans-serif; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+        .ui { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-around; pointer-events: none; z-index: 10; }
+        .hp-bar { width: 150px; height: 15px; background: #555; border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
+        .hp-fill { height: 100%; width: 100%; transition: width 0.3s; }
+        #p1-hp { background: #3498db; }
+        #p2-hp { background: #e74c3c; }
+        #canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
+        canvas { border-bottom: 10px solid #2c3e50; max-width: 100%; max-height: 100%; object-fit: contain; }
+        .controls { height: 180px; background: #1a1a1a; display: flex; justify-content: space-between; padding: 10px; box-sizing: border-box; }
+        .player-ctrl { display: flex; gap: 10px; align-items: center; }
+        .touch-zone { width: 90px; height: 90px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 10px; text-align: center; }
+        .btn-group { display: flex; flex-direction: column; gap: 5px; }
+        .btn { width: 75px; height: 75px; border-radius: 50%; border: none; color: white; font-weight: bold; font-size: 13px; user-select: none; }
+        .jump-btn { background: #444; }
+        .attack-btn { background: #e67e22; }
+        @media (min-width: 1024px) { .controls { display: none; } }
+    </style>
+</head>
+<body>
+
+    <div class="ui">
+        <div><div class="hp-bar"><div id="p1-hp" class="hp-fill"></div></div></div>
+        <div><div class="hp-bar"><div id="p2-hp" class="hp-fill"></div></div></div>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="player-ctrl">
+            <div class="touch-zone" id="p1-touch">1P 컨트롤</div>
+            <div class="btn-group">
+                <button class="btn jump-btn" id="p1-jump">JUMP</button>
+                <button class="btn attack-btn" id="p1-attack">ATTACK</button>
+            </div>
+        </div>
+        <div class="player-ctrl" style="flex-direction: row-reverse;">
+            <div class="touch-zone" id="p2-touch">2P 컨트롤</div>
+            <div class="btn-group">
+                <button class="btn jump-btn" id="p2-jump">JUMP</button>
+                <button class="btn attack-btn" id="p2-attack">ATTACK</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 1024;
+    canvas.height = 576;
+    
+    const gravity = 0.7;
+    const FLOOR_Y = 60;
+
+    class Sprite {
+        constructor({ position, velocity, offset, name }) {
+            this.position = position;
+            this.velocity = velocity;
+            this.width = 50;
+            this.height = 150;
+            this.name = name;
+            this.attackBox = { position: { x: 0, y: 0 }, offset: offset, width: 125, height: 50 };
+            this.isAttacking = false;
+            this.isBlocking = false;
+            this.health = 100;
+            this.isPoweredUp = false;
+            this.onGround = false;
+            this.moveDir = 0; 
+        }
+
+        draw() {
+            const x = this.position.x;
+            const y = this.position.y;
+            const segmentH = this.height / 4;
+
+            if (this.name === 'P1') {
+                // 1P: 갈색 -> 노랑 -> 하양 -> 파랑
+                ctx.fillStyle = 'brown';  ctx.fillRect(x, y, this.width, segmentH);
+                ctx.fillStyle = 'yellow'; ctx.fillRect(x, y + segmentH, this.width, segmentH);
+                ctx.fillStyle = 'white';  ctx.fillRect(x, y + segmentH * 2, this.width, segmentH);
+                ctx.fillStyle = 'blue';   ctx.fillRect(x, y + segmentH * 3, this.width, segmentH);
+            } else {
+                // 2P: 초록 -> 검정 -> 초록 -> 검정
+                ctx.fillStyle = 'green'; ctx.fillRect(x, y, this.width, segmentH);
+                ctx.fillStyle = 'black'; ctx.fillRect(x, y + segmentH, this.width, segmentH);
+                ctx.fillStyle = 'green'; ctx.fillRect(x, y + segmentH * 2, this.width, segmentH);
+                ctx.fillStyle = 'black'; ctx.fillRect(x, y + segmentH * 3, this.width, segmentH);
+            }
+
+            // 방어 중 덮개 효과
+            if (this.isBlocking) {
+                ctx.fillStyle = 'rgba(128, 128, 128, 0.6)';
+                ctx.fillRect(x, y, this.width, this.height);
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 4;
+                ctx.strokeRect(x - 2, y - 2, this.width + 4, this.height + 4);
+            }
+
+            // 공격 휘두르기 시각 효과
+            if (this.isAttacking) {
+                ctx.fillStyle = this.isPoweredUp ? 'silver' : 'rgba(255, 255, 0, 0.8)';
+                if(this.isPoweredUp) { ctx.strokeStyle = '#ff69b4'; ctx.lineWidth = 4; }
+                ctx.fillRect(this.attackBox.position.x, this.attackBox.position.y, this.attackBox.width, this.attackBox.height);
+                if(this.isPoweredUp) ctx.strokeRect(this.attackBox.position.x, this.attackBox.position.y, this.attackBox.width, this.attackBox.height);
+            }
+        }
+
+        update() {
+            this.draw();
+            this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
+            this.attackBox.position.y = this.position.y + 40;
+            this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
+
+            if (this.position.y + this.height + this.velocity.y >= canvas.height - FLOOR_Y) {
+                this.velocity.y = 0; this.position.y = canvas.height - FLOOR_Y - this.height;
+                this.onGround = true;
+            } else { this.velocity.y += gravity; this.onGround = false; }
+
+            if (this.position.x < 0) this.position.x = 0;
+            if (this.position.x + this.width > canvas.width) this.position.x = canvas.width - this.width;
+        }
+
+        attack() { if (!this.isBlocking) { this.isAttacking = true; setTimeout(() => this.isAttacking = false, 100); } }
+        jump() { if (this.onGround && !this.isBlocking) this.velocity.y = -20; }
+    }
+
+    class Item {
+        constructor(type) {
+            this.type = type; this.width = 35; this.height = 35;
+            this.position = { x: 100 + Math.random() * (canvas.width - 200), y: -50 };
+            this.velocity = { x: 0, y: 4 }; this.active = true;
+        }
+        draw() {
+            if (!this.active) return;
+            ctx.fillStyle = this.type === 'heal' ? '#2ecc71' : 'silver';
+            if(this.type === 'power') { ctx.strokeStyle = '#ff69b4'; ctx.lineWidth = 3; }
+            ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+            if(this.type === 'power') ctx.strokeRect(this.position.x, this.position.y, this.width, this.height);
+        }
+        update() {
+            this.draw(); this.position.y += this.velocity.y;
+            if (this.position.y + this.height >= canvas.height - FLOOR_Y) {
+                this.velocity.y = 0; this.position.y = canvas.height - FLOOR_Y - this.height;
+            }
+        }
+    }
+
+    const p1 = new Sprite({ position: { x: 150, y: 0 }, velocity: { x: 0, y: 0 }, offset: { x: 50, y: 0 }, name: 'P1' });
+    const p2 = new Sprite({ position: { x: 800, y: 0 }, velocity: { x: 0, y: 0 }, offset: { x: -125, y: 0 }, name: 'P2' });
+    let items = [];
+
+    // 터치/드래그 로직
+    function setupTouch(id, player) {
+        const zone = document.getElementById(id);
+        let sX, sY;
+        zone.addEventListener('touchstart', (e) => { sX = e.touches[0].clientX; sY = e.touches[0].clientY; e.preventDefault(); });
+        zone.addEventListener('touchmove', (e) => {
+            const dx = e.touches[0].clientX - sX; const dy = e.touches[0].clientY - sY;
+            if (Math.abs(dx) > 15) { player.moveDir = dx > 0 ? 1 : -1; player.attackBox.offset.x = dx > 0 ? 50 : -125; }
+            else { player.moveDir = 0; }
+            player.isBlocking = dy > 30; e.preventDefault();
+        });
+        zone.addEventListener('touchend', () => { player.moveDir = 0; player.isBlocking = false; });
+    }
+    setupTouch('p1-touch', p1); setupTouch('p2-touch', p2);
+    document.getElementById('p1-jump').addEventListener('touchstart', (e) => { p1.jump(); e.preventDefault(); });
+    document.getElementById('p1-attack').addEventListener('touchstart', (e) => { p1.attack(); e.preventDefault(); });
+    document.getElementById('p2-jump').addEventListener('touchstart', (e) => { p2.jump(); e.preventDefault(); });
+    document.getElementById('p2-attack').addEventListener('touchstart', (e) => { p2.attack(); e.preventDefault(); });
+
+    // 키보드 로직
+    const keys = { a:false, d:false, ArrowLeft:false, ArrowRight:false };
+    window.addEventListener('keydown', (e) => {
+        if(e.key.toLowerCase() === 'a') { keys.a = true; p1.attackBox.offset.x = -125; }
+        if(e.key.toLowerCase() === 'd') { keys.d = true; p1.attackBox.offset.x = 50; }
+        if(e.key.toLowerCase() === 'w') p1.jump();
+        if(e.key.toLowerCase() === 's') p1.isBlocking = true;
+        if(e.key.toLowerCase() === 'e') p1.attack();
+        if(e.key === 'ArrowLeft') { keys.ArrowLeft = true; p2.attackBox.offset.x = -125; }
+        if(e.key === 'ArrowRight') { keys.ArrowRight = true; p2.attackBox.offset.x = 50; }
+        if(e.key === 'ArrowUp') p2.jump();
+        if(e.key === 'ArrowDown') p2.isBlocking = true;
+        if(e.key === 'Shift') p2.attack();
+    });
+    window.addEventListener('keyup', (e) => {
+        if(e.key.toLowerCase() === 'a') keys.a = false; if(e.key.toLowerCase() === 'd') keys.d = false; if(e.key.toLowerCase() === 's') p1.isBlocking = false;
+        if(e.key === 'ArrowLeft') keys.ArrowLeft = false; if(e.key === 'ArrowRight') keys.ArrowRight = false; if(e.key === 'ArrowDown') p2.isBlocking = false;
+    });
+
+    setInterval(() => { if(p1.health > 0 && p2.health > 0) items.push(new Item('heal')); }, 10000);
+    setTimeout(() => { if(p1.health > 0 && p2.health > 0) items.push(new Item('power')); }, 15000);
+
+    function checkCollision(r1, r2) {
+        return (r1.position.x < r2.position.x + r2.width && r1.position.x + r1.width > r2.position.x &&
+                r1.position.y < r2.position.y + r2.height && r1.position.y + r1.height > r2.position.y);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        // 노을 배경 그라데이션
+        let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#2c3e50'); // 밤하늘 시작
+        gradient.addColorStop(0.4, '#e67e22'); // 주황색 노을
+        gradient.addColorStop(1, '#f1c40f'); // 수평선 황금색
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 바닥
+        ctx.fillStyle = '#34495e'; ctx.fillRect(0, canvas.height - FLOOR_Y, canvas.width, FLOOR_Y);
+
+        // 이동 처리
+        p1.velocity.x = 0;
+        if (p1.moveDir !== 0) p1.velocity.x = p1.moveDir * 7;
+        else if (keys.a) p1.velocity.x = -7; else if (keys.d) p1.velocity.x = 7;
+        if (p1.isBlocking) p1.velocity.x = 0;
+
+        p2.velocity.x = 0;
+        if (p2.moveDir !== 0) p2.velocity.x = p2.moveDir * 7;
+        else if (keys.ArrowLeft) p2.velocity.x = -7; else if (keys.ArrowRight) p2.velocity.x = 7;
+        if (p2.isBlocking) p2.velocity.x = 0;
+
+        p1.update(); p2.update();
+
+        items.forEach((item, i) => {
+            item.update();
+            [p1, p2].forEach(p => {
+                if (item.active && checkCollision(p, item)) {
+                    if (item.type === 'heal') p.health = Math.min(100, p.health + 20);
+                    else p.isPoweredUp = true;
+                    item.active = false; items.splice(i, 1);
+                    document.getElementById('p1-hp').style.width = p1.health + '%';
+                    document.getElementById('p2-hp').style.width = p2.health + '%';
+                }
+            });
+        });
+
+        // 공격 판정
+        if (p1.isAttacking && checkCollision(p2, {position: p1.attackBox.position, width: p1.attackBox.width, height: p1.attackBox.height})) {
+            p1.isAttacking = false; if (!p2.isBlocking) { p2.health -= p1.isPoweredUp ? 35 : 15; document.getElementById('p2-hp').style.width = Math.max(0, p2.health) + '%'; }
+        }
+        if (p2.isAttacking && checkCollision(p1, {position: p2.attackBox.position, width: p2.attackBox.width, height: p2.attackBox.height})) {
+            p2.isAttacking = false; if (!p1.isBlocking) { p1.health -= p2.isPoweredUp ? 35 : 15; document.getElementById('p1-hp').style.width = Math.max(0, p1.health) + '%'; }
+        }
+
+        if (p1.health <= 0 || p2.health <= 0) {
+            ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.font = 'bold 60px Arial';
+            ctx.fillText(p1.health <= 0 ? 'PLAYER 2 WINS!' : 'PLAYER 1 WINS!', canvas.width/2, canvas.height/2);
+        }
+    }
+    animate();
+</script>
+</body>
+</html>

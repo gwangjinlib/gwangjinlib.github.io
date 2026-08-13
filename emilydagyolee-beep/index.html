@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RETRO RPG | CHARACTER SYSTEM FIXED</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-green: #39FF14;
+            --neon-magenta: #FF00FF;
+            --retro-black: #0d0d0d;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--retro-black);
+            color: #fff;
+            image-rendering: pixelated;
+            scroll-behavior: smooth;
+        }
+
+        /* 8-Bit UI Elements */
+        .pixel-border {
+            border: 4px solid #fff;
+            box-shadow: 6px 6px 0px #333;
+            background: #000;
+        }
+
+        .pixel-btn {
+            background: #222;
+            border: 4px solid #fff;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.1s;
+            font-size: 10px;
+            display: inline-block;
+            user-select: none;
+        }
+
+        .pixel-btn:hover:not(:disabled) {
+            background: var(--neon-magenta);
+            color: #000;
+        }
+
+        .pixel-btn:active:not(:disabled) {
+            transform: translate(3px, 3px);
+            box-shadow: none;
+        }
+
+        .pixel-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Screen Shake */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            80% { transform: translate(3px, 1px) rotate(-1deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-effect { animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* Game Grid */
+        .grid-hole {
+            aspect-ratio: 1 / 1;
+            background: #1a1a1a;
+            border: 4px solid #444;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .monster {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            bottom: -100%;
+            transition: bottom 0.1s ease-out;
+            cursor: pointer;
+        }
+        .monster.up { bottom: 0; }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #fff; border: 2px solid #000; }
+    </style>
+</head>
+<body>
+
+    <div id="master-wrapper">
+        <!-- HEADER: NAME & SOUND -->
+        <header class="max-w-6xl mx-auto p-6 flex flex-wrap justify-between items-center gap-6 border-b-4 border-white mb-10">
+            <div class="text-xl text-neon-green">HERO_QUEST.EXE</div>
+            
+            <div class="flex items-center gap-2 bg-gray-900 p-2 border-2 border-white">
+                <input type="text" id="player-name-input" maxlength="8" placeholder="ENTER NAME" class="bg-transparent border-none outline-none text-[10px] w-24 placeholder-gray-600 uppercase">
+                <button onclick="applyName()" class="pixel-btn !p-1 !border-2 text-[8px]">SET</button>
+            </div>
+
+            <nav class="flex gap-4 text-[10px]">
+                <button id="sound-toggle" onclick="toggleAudio()" class="text-red-500">SOUND: OFF</button>
+            </nav>
+        </header>
+
+        <!-- CHARACTER SET SECTION (FIXED) -->
+        <section id="character-set" class="max-w-5xl mx-auto px-4 mb-16 grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Stats Distribution -->
+            <div class="pixel-border p-6 border-neon-green">
+                <h2 class="text-sm mb-4">CHARACTER SET</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <p class="text-[10px] text-gray-400">AVAILABLE POINTS:</p>
+                    <span id="stat-points" class="text-lg text-white">10</span>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- STR -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] block">STR (POWER)</span>
+                            <span class="text-[8px] text-gray-500 font-sans">Score/Gold +Bonus</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeStat('str', -1)" class="pixel-btn">-</button>
+                            <span id="val-str" class="text-sm w-6 text-center">0</span>
+                            <button onclick="changeStat('str', 1)" class="pixel-btn">+</button>
+                        </div>
+                    </div>
+                    <!-- DEX -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] block">DEX (AGILITY)</span>
+                            <span class="text-[8px] text-gray-500 font-sans">Monster Stay Duration Up</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeStat('dex', -1)" class="pixel-btn">-</button>
+                            <span id="val-dex" class="text-sm w-6 text-center">0</span>
+                            <button onclick="changeStat('dex', 1)" class="pixel-btn">+</button>
+                        </div>
+                    </div>
+                    <!-- INT -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] block">INT (WISDOM)</span>
+                            <span class="text-[8px] text-gray-500 font-sans">Spawn Speed Frequency Up</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeStat('int', -1)" class="pixel-btn">-</button>
+                            <span id="val-int" class="text-sm w-6 text-center">0</span>
+                            <button onclick="changeStat('int', 1)" class="pixel-btn">+</button>
+                        </div>
+                    </div>
+                    <!-- LUK -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] block">LUK (LUCK)</span>
+                            <span class="text-[8px] text-gray-500 font-sans">Golden Monster Chance Up</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeStat('luk', -1)" class="pixel-btn">-</button>
+                            <span id="val-luk" class="text-sm w-6 text-center">0</span>
+                            <button onclick="changeStat('luk', 1)" class="pixel-btn">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile & Inventory -->
+            <div class="pixel-border p-6 border-neon-magenta flex flex-col h-full">
+                <h2 class="text-sm mb-4">HERO PROFILE</h2>
+                <div class="bg-gray-900 p-4 mb-4 border-2 border-dashed border-gray-600">
+                    <p class="text-[10px]">NAME: <span class="player-name-disp text-neon-magenta font-bold">PLAYER</span></p>
+                    <p class="text-[10px] mt-2">CLASS: <span id="player-class" class="text-neon-green">NOVICE</span></p>
+                    <p class="text-[10px] mt-2 text-yellow-400">GOLD: <span id="gold-val">0</span>G</p>
+                </div>
+                <p class="text-[8px] mb-2 text-gray-500">INVENTORY:</p>
+                <div id="inventory-list" class="flex flex-wrap gap-2 flex-grow content-start overflow-y-auto max-h-32">
+                    <!-- Items -->
+                </div>
+            </div>
+        </section>
+
+        <!-- GAME SECTION -->
+        <section id="game" class="max-w-5xl mx-auto px-4 mb-20">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-lg text-neon-green">MONSTER HUNT</h2>
+                    <p class="text-[8px] text-gray-500 mt-1">HINT: UPGRADE DEX TO CATCH FAST MONSTERS!</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[8px] text-gray-400">SCORE: <span id="score" class="text-lg text-white">0</span></p>
+                    <p class="text-[8px] text-gray-400">TIME: <span id="timer" class="text-lg text-magenta-500">30</span></p>
+                </div>
+            </div>
+
+            <div id="game-grid" class="grid grid-cols-3 gap-2 max-w-[360px] mx-auto relative">
+                <div class="grid-hole"><div class="monster" data-idx="0"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="1"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="2"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="3"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="4"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="5"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="6"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="7"></div></div>
+                <div class="grid-hole"><div class="monster" data-idx="8"></div></div>
+                
+                <div id="game-overlay" class="absolute inset-0 bg-black/90 flex flex-col justify-center items-center z-10 text-center">
+                    <button onclick="startGame()" class="pixel-btn text-base px-6">START GAME</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SHOP SECTION -->
+        <section class="max-w-5xl mx-auto px-4 mb-20">
+            <div class="pixel-border p-6">
+                <h2 class="text-sm mb-6 text-yellow-400">PIXEL SHOP</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="border-2 border-gray-700 p-4 text-center">
+                        <p class="text-[10px] mb-2 font-bold">LEGEND SWORD</p>
+                        <p class="text-[8px] text-gray-500 mb-4">DURABILITY++</p>
+                        <button onclick="buyItem('Legend Sword', 500)" class="pixel-btn">500G</button>
+                    </div>
+                    <div class="border-2 border-gray-700 p-4 text-center">
+                        <p class="text-[10px] mb-2 font-bold">SPEED BOOTS</p>
+                        <p class="text-[8px] text-gray-500 mb-4">MOVEMENT++</p>
+                        <button onclick="buyItem('Speed Boots', 800)" class="pixel-btn">800G</button>
+                    </div>
+                    <div class="border-2 border-gray-700 p-4 text-center">
+                        <p class="text-[10px] mb-2 font-bold">GOD'S CROWN</p>
+                        <p class="text-[8px] text-gray-500 mb-4">STATUS++</p>
+                        <button onclick="buyItem('God Crown', 2000)" class="pixel-btn">2000G</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        /* --- CORE STATE --- */
+        let state = {
+            name: localStorage.getItem('rpg_v4_name') || 'PLAYER',
+            gold: parseInt(localStorage.getItem('rpg_v4_gold')) || 0,
+            stats: JSON.parse(localStorage.getItem('rpg_v4_stats')) || { str: 0, dex: 0, int: 0, luk: 0 },
+            statPoints: localStorage.getItem('rpg_v4_points') !== null ? parseInt(localStorage.getItem('rpg_v4_points')) : 10,
+            inventory: JSON.parse(localStorage.getItem('rpg_v4_inv')) || [],
+            audioOn: false
+        };
+
+        /* --- AUDIO --- */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(freq, type, duration) {
+            if (!state.audioOn) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function toggleAudio() {
+            state.audioOn = !state.audioOn;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const btn = document.getElementById('sound-toggle');
+            btn.innerText = `SOUND: ${state.audioOn ? 'ON' : 'OFF'}`;
+            btn.className = state.audioOn ? 'text-green-500 font-bold' : 'text-red-500';
+            if (state.audioOn) playSfx(600, 'sine', 0.1);
+        }
+
+        /* --- UI UPDATE ENGINE --- */
+        function syncUI() {
+            // Text Sync
+            document.querySelectorAll('.player-name-disp').forEach(el => el.innerText = state.name);
+            document.getElementById('gold-val').innerText = state.gold;
+            document.getElementById('stat-points').innerText = state.statPoints;
+            
+            // Stat Numbers
+            for (let key in state.stats) {
+                document.getElementById(`val-${key}`).innerText = state.stats[key];
+            }
+
+            // Inventory Rendering
+            const invContainer = document.getElementById('inventory-list');
+            invContainer.innerHTML = state.inventory.map(item => 
+                `<div class="bg-white text-black text-[8px] p-1 border-2 border-gray-400 font-bold"># ${item}</div>`
+            ).join('');
+            if (state.inventory.length === 0) invContainer.innerHTML = '<p class="text-[8px] text-gray-600 italic">EMPTY...</p>';
+
+            // Class System Based on Stats
+            const classText = document.getElementById('player-class');
+            const totalStats = state.stats.str + state.stats.dex + state.stats.int + state.stats.luk;
+            if (totalStats >= 10) {
+                if (state.stats.str >= 5) classText.innerText = "WARRIOR";
+                else if (state.stats.dex >= 5) classText.innerText = "RANGER";
+                else if (state.stats.int >= 5) classText.innerText = "WIZARD";
+                else if (state.stats.luk >= 5) classText.innerText = "GAMBLER";
+                else classText.innerText = "ADVENTURER";
+            } else {
+                classText.innerText = "NOVICE";
+            }
+
+            // Persistence
+            localStorage.setItem('rpg_v4_name', state.name);
+            localStorage.setItem('rpg_v4_gold', state.gold);
+            localStorage.setItem('rpg_v4_stats', JSON.stringify(state.stats));
+            localStorage.setItem('rpg_v4_points', state.statPoints);
+            localStorage.setItem('rpg_v4_inv', JSON.stringify(state.inventory));
+        }
+
+        /* --- CHARACTER SET LOGIC --- */
+        function applyName() {
+            const input = document.getElementById('player-name-input');
+            if (input.value.trim()) {
+                state.name = input.value.trim().toUpperCase();
+                syncUI();
+                playSfx(880, 'sine', 0.1);
+                input.value = "";
+            }
+        }
+
+        function changeStat(stat, amount) {
+            if (amount > 0 && state.statPoints > 0) {
+                state.stats[stat]++;
+                state.statPoints--;
+            } else if (amount < 0 && state.stats[stat] > 0) {
+                state.stats[stat]--;
+                state.statPoints++;
+            } else {
+                return; // 제한 조건
+            }
+            playSfx(440 + (state.stats[stat] * 50), 'sine', 0.05);
+            syncUI();
+        }
+
+        function buyItem(itemName, price) {
+            if (state.inventory.includes(itemName)) {
+                alert("ALREADY OWNED!");
+                return;
+            }
+            if (state.gold >= price) {
+                state.gold -= price;
+                state.inventory.push(itemName);
+                playSfx(1200, 'sine', 0.2);
+                syncUI();
+                alert(`PURCHASED: ${itemName}!`);
+            } else {
+                alert("NOT ENOUGH GOLD!");
+            }
+        }
+
+        /* --- MINI GAME ENGINE (연동 로직) --- */
+        let game = { active: false, score: 0, time: 30 };
+        let gameInterval, spawnTimer;
+
+        function startGame() {
+            if (game.active) return;
+            game.active = true;
+            game.score = 0;
+            game.time = 30;
+            document.getElementById('game-overlay').classList.add('hidden');
+            document.getElementById('score').innerText = '0';
+            
+            gameInterval = setInterval(() => {
+                game.time--;
+                document.getElementById('timer').innerText = game.time;
+                if (game.time <= 0) endGame();
+            }, 1000);
+            
+            spawnLoop();
+            playSfx(400, 'square', 0.2);
+        }
+
+        function spawnLoop() {
+            if (!game.active) return;
+            
+            const monsters = document.querySelectorAll('.monster');
+            const target = monsters[Math.floor(Math.random() * monsters.length)];
+            
+            if (!target.classList.contains('up')) {
+                // LUK 수치에 따른 황금 몬스터 등장 확률 (기본 10% + 스탯당 5%)
+                const goldChance = 10 + (state.stats.luk * 5);
+                const isGold = (Math.random() * 100) < goldChance;
+                
+                target.innerHTML = isGold ? '✨' : '👾';
+                target.dataset.type = isGold ? 'gold' : 'norm';
+                target.classList.add('up');
+
+                // DEX 수치에 따른 몬스터 유지 시간 (기본 800ms + 스탯당 100ms 증가하여 잡기 쉬워짐)
+                const stayTime = 800 + (state.stats.dex * 100);
+                setTimeout(() => target.classList.remove('up'), stayTime);
+            }
+
+            // INT 수치에 따른 다음 몬스터 출현 빈도 (기본 1000ms - 스탯당 80ms 단축)
+            const nextSpawn = Math.max(1000 - (state.stats.int * 80), 300);
+            spawnTimer = setTimeout(spawnLoop, nextSpawn);
+        }
+
+        // 타격 처리
+        document.querySelectorAll('.monster').forEach(m => {
+            m.addEventListener('mousedown', () => {
+                if (!m.classList.contains('up')) return;
+                m.classList.remove('up');
+                
+                // Screen Shake
+                document.getElementById('master-wrapper').classList.add('shake-effect');
+                setTimeout(() => document.getElementById('master-wrapper').classList.remove('shake-effect'), 200);
+
+                // STR 수치에 따른 점수 및 골드 보너스 (기본 10/100 + 스탯당 10점 추가)
+                const baseScore = m.dataset.type === 'gold' ? 100 : 10;
+                const strBonus = state.stats.str * 10;
+                
+                game.score += (baseScore + strBonus);
+                document.getElementById('score').innerText = game.score;
+                playSfx(220, 'sawtooth', 0.1);
+            });
+        });
+
+        function endGame() {
+            game.active = false;
+            clearInterval(gameInterval);
+            clearTimeout(spawnTimer);
+            document.getElementById('game-overlay').classList.remove('hidden');
+            
+            // 최종 골드 정산 (DEX/STR 가중치 포함)
+            const earnedGold = Math.floor(game.score / 10);
+            state.gold += earnedGold;
+            syncUI();
+            alert(`GAME OVER!\nSCORE: ${game.score}\nGOLD EARNED: ${earnedGold}G`);
+        }
+
+        // 초기화
+        window.onload = syncUI;
+    </script>
+</body>
+</html>
