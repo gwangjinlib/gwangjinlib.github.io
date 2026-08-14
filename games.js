@@ -37,6 +37,16 @@ const games = [
     url: 'Pursuer-BlingPursuer/'
   },
   {
+    id: 'bazooka-dodge',
+    title: '바주카 장애물 피하기 게임',
+    creator: 'kimlee623',
+    genre: 'game',
+    emoji: '🚀',
+    color: 'coral',
+    description: '다양한 무기와 탄약, 핵폭탄 필살기와 쉴드가 등장하는 슈팅 아케이드 게임.',
+    url: 'kimlee623/'
+  },
+  {
     id: 'nodeboard',
     title: 'Nodeboard',
     creator: 'oooj13',
