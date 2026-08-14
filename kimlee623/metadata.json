@@ -1,0 +1,6 @@
+{
+  "name": "바주카 장애물 피하기 게임",
+  "description": "다양한 무기와 탄약, 필살기 핵폭탄과 쉴드가 등장하는 바주카 피하기 & 슈팅 아케이드 게임",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
