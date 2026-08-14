@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_content = r'''<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
@@ -16,6 +16,7 @@
     --neon-amber:#ffc857;
     --neon-green:#7cff6b;
     --neon-purple:#c084fc;
+    --neon-red:#ff5c5c;
     --ink:#f2f0e9;
     --ink-dim:#8a8599;
     --line:rgba(242,240,233,0.08);
@@ -46,7 +47,7 @@
   @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   /* ---------- HUB ---------- */
-  .hub-header{ text-align:center; margin-bottom:32px; }
+  .hub-header{ text-align:center; margin-bottom:22px; position:relative; }
   .marquee{
     display:inline-block; padding:22px 46px; border:2px solid var(--line);
     border-radius:6px; background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
@@ -67,8 +68,24 @@
   }
   .hub-sub{ margin:0; color:var(--ink-dim); font-size:13px; letter-spacing:1px; }
 
+  .topbar{
+    display:flex; justify-content:center; align-items:center; gap:14px; flex-wrap:wrap;
+    margin:20px 0 6px;
+  }
+  .points-badge{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--bg-panel-2); border:1px solid var(--neon-amber); border-radius:20px;
+    padding:8px 16px; font-size:13px; color:var(--neon-amber); font-weight:700;
+  }
+  .shop-nav-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:.5px;
+    background:var(--bg-panel-2); color:var(--ink); border:1px solid var(--neon-purple);
+    border-radius:20px; padding:9px 18px; cursor:pointer; transition:.15s;
+  }
+  .shop-nav-btn:hover{ background:var(--neon-purple); color:#0a0a12; }
+
   .category-tabs{
-    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:26px 0 30px;
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:22px 0 30px;
   }
   .cat-btn{
     font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:.5px;
@@ -102,6 +119,8 @@
     box-shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 26px var(--accent);
     outline:none;
   }
+  .cabinet.locked{ opacity:.6; }
+  .cabinet.locked:hover{ transform:none; box-shadow:none; border-color:var(--line); }
   .cabinet-glow{
     position:absolute; top:-40%; left:-20%; width:160%; height:160%;
     background:radial-gradient(circle, var(--accent) 0%, transparent 60%);
@@ -119,6 +138,10 @@
   .cabinet-tag{
     display:inline-block; margin-top:10px; font-size:10px; letter-spacing:.5px;
     color:var(--accent); border:1px solid var(--accent); border-radius:10px; padding:2px 8px;
+  }
+  .cabinet-lock{
+    display:inline-block; margin-top:10px; font-size:10px; letter-spacing:.5px;
+    color:var(--neon-amber); border:1px solid var(--neon-amber); border-radius:10px; padding:2px 8px;
   }
 
   .hub-footer{
@@ -152,7 +175,7 @@
     background:var(--bg-panel); border:1px solid var(--line); border-radius:10px;
     padding:18px; box-shadow:0 0 30px rgba(0,0,0,0.4);
   }
-  canvas{ display:block; border-radius:6px; background:#0c0a16; touch-action:none; outline:none; }
+  canvas{ display:block; border-radius:6px; background:#0c0a16; touch-action:none; outline:none; cursor:crosshair; }
   .hint{ color:var(--ink-dim); font-size:12px; text-align:center; }
   .overlay-msg{
     display:none; text-align:center; font-family:'Press Start 2P', monospace;
@@ -242,10 +265,22 @@
     padding:10px 12px; color:var(--ink); outline:none;
   }
   .input-row input:focus{ border-color:var(--neon-cyan); }
-  .tag-chip{
-    display:inline-block; background:var(--bg-panel-2); border:1px solid var(--neon-purple);
-    color:var(--neon-purple); border-radius:12px; padding:4px 12px; font-size:12px; margin:2px;
+
+  /* shop */
+  .shop-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px; max-width:640px; margin:0 auto; }
+  .shop-item{
+    background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--line); border-radius:10px; padding:22px; text-align:center;
   }
+  .shop-item .cabinet-icon{ font-size:32px; }
+  .shop-item h3{ font-family:'Press Start 2P', monospace; font-size:13px; margin:10px 0; color:var(--neon-purple); }
+  .shop-item p{ color:var(--ink-dim); font-size:12.5px; margin:0 0 14px; line-height:1.5; }
+  .shop-price{ color:var(--neon-amber); font-weight:700; margin-bottom:14px; }
+
+  /* sniper */
+  .sniper-hud{ display:flex; justify-content:space-between; width:100%; max-width:480px; font-size:13px; }
+  .hearts{ letter-spacing:2px; }
+  .hearts .lost{ opacity:.25; }
 
   footer.credit{ text-align:center; color:var(--ink-dim); font-size:10.5px; margin-top:40px; letter-spacing:.5px; }
 </style>
@@ -264,11 +299,17 @@
     </div>
   </div>
 
+  <div class="topbar">
+    <div class="points-badge">🪙 <span id="pointsDisplay">0</span> P</div>
+    <button class="shop-nav-btn" id="openShopBtn">🛒 상점</button>
+  </div>
+
   <div class="category-tabs">
     <button class="cat-btn active" data-cat="all">전체</button>
     <button class="cat-btn" data-cat="arcade">아케이드</button>
     <button class="cat-btn" data-cat="puzzle">퍼즐</button>
     <button class="cat-btn" data-cat="party">미니게임 (AI)</button>
+    <button class="cat-btn" data-cat="shopgames">상점 게임</button>
   </div>
 
   <div class="category-section" data-section="arcade">
@@ -279,12 +320,14 @@
         <span class="cabinet-icon">▲</span>
         <span class="cabinet-name">SNAKE</span>
         <span class="cabinet-desc">촘촘한 맵 + 자율주행 모드</span>
+        <span class="cabinet-tag" style="color:var(--neon-amber);border-color:var(--neon-amber)">🪙 점수x5 P</span>
       </button>
       <button class="cabinet" data-game="breakout" data-cat="arcade" style="--accent:#7cff6b">
         <span class="cabinet-glow"></span>
         <span class="cabinet-icon">■</span>
         <span class="cabinet-name">BREAKOUT</span>
         <span class="cabinet-desc">맞출 때마다 공이 늘어나요</span>
+        <span class="cabinet-tag" style="color:var(--neon-amber);border-color:var(--neon-amber)">🪙 점수 P</span>
       </button>
     </div>
   </div>
@@ -297,12 +340,14 @@
         <span class="cabinet-icon">◆</span>
         <span class="cabinet-name">2048</span>
         <span class="cabinet-desc">숫자 타일을 합쳐보세요</span>
+        <span class="cabinet-tag" style="color:var(--neon-amber);border-color:var(--neon-amber)">🪙 점수/10 P</span>
       </button>
       <button class="cabinet" data-game="memory" data-cat="puzzle" style="--accent:#ff4fa3">
         <span class="cabinet-glow"></span>
         <span class="cabinet-icon">●</span>
         <span class="cabinet-name">MEMORY</span>
         <span class="cabinet-desc">미리보기 후 짝을 맞춰요</span>
+        <span class="cabinet-tag" style="color:var(--neon-amber);border-color:var(--neon-amber)">🪙 최대 200 P</span>
       </button>
     </div>
   </div>
@@ -327,7 +372,41 @@
     </div>
   </div>
 
-  <div class="hub-footer">화살표 키 · 마우스 클릭 · 터치로 플레이하세요</div>
+  <div class="category-section" data-section="shopgames">
+    <p class="category-label">// 상점에서 구매한 게임</p>
+    <div class="cabinet-grid">
+      <button class="cabinet locked" data-game="sniper" data-cat="shopgames" id="sniperCabinet" style="--accent:#ff5c5c">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">◎</span>
+        <span class="cabinet-name">SNIPER DUEL</span>
+        <span class="cabinet-desc" id="sniperCabinetDesc">1:1 저격 듀얼 · 목숨 3개 · 라운드마다 맵 변경</span>
+        <span class="cabinet-lock" id="sniperCabinetBadge">🔒 상점에서 구매 필요</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="hub-footer">화살표 키 · 마우스 클릭 · 터치로 플레이하세요 · 게임을 플레이하면 포인트가 쌓여요</div>
+</div>
+
+<!-- ============ SHOP ============ -->
+<div id="screen-shop" class="screen">
+  <div class="game-header">
+    <button class="back-btn" data-back>← 허브로</button>
+    <h2 class="game-title" style="color:#c084fc">상점</h2>
+    <div class="game-score">보유 <b id="shopPointsDisplay">0</b> P</div>
+  </div>
+  <div class="game-stage">
+    <div class="hint">미니게임을 플레이해서 얻은 포인트로 새 게임을 잠금 해제하세요</div>
+    <div class="shop-grid">
+      <div class="shop-item">
+        <span class="cabinet-icon" style="color:#ff5c5c">◎</span>
+        <h3>SNIPER DUEL</h3>
+        <p>1:1 저격 듀얼. 나와 상대 모두 목숨 3개! 장애물 뒤에서 적이 잠깐 나타나면 클릭해서 저격하세요. 놓치면 반격당해요. 목숨이 바뀔 때마다 맵이 새로 생성돼요.</p>
+        <div class="shop-price" id="sniperPriceLabel">🪙 500 P</div>
+        <button class="btn" id="buySniperBtn">구매하기</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ============ SNAKE ============ -->
@@ -457,9 +536,107 @@
   </div>
 </div>
 
+<!-- ============ SNIPER DUEL ============ -->
+<div id="screen-sniper" class="screen">
+  <div class="game-header">
+    <button class="back-btn" data-back>← 허브로</button>
+    <h2 class="game-title" style="color:#ff5c5c">SNIPER DUEL</h2>
+    <div class="game-score">라운드 <b id="snRound">1</b></div>
+  </div>
+  <div class="game-stage">
+    <div class="sniper-hud">
+      <div>나 <span class="hearts" id="snPlayerHearts">❤❤❤</span></div>
+      <div>상대 <span class="hearts" id="snEnemyHearts">❤❤❤</span></div>
+    </div>
+    <div class="panel">
+      <canvas id="sniperCanvas" width="480" height="320" tabindex="0"></canvas>
+    </div>
+    <div class="overlay-msg" id="snOver">GAME OVER</div>
+    <button class="btn" id="snRestart">다시 시작</button>
+    <div class="hint">장애물 뒤에서 적이 잠깐 나타나면 재빨리 클릭/터치로 저격하세요! 놓치면 반격당해요</div>
+  </div>
+</div>
+
 <footer class="credit">NEON ARCADE — made with Python + HTML/CSS/JS</footer>
 
 <script>
+/* ============ POINTS & PERSISTENCE ============ */
+let ARCADE_POINTS=0;
+let SNIPER_UNLOCKED=false;
+function loadProgress(){
+  try{
+    const p=localStorage.getItem('neon_arcade_points');
+    ARCADE_POINTS = p ? parseInt(p,10) : 0;
+    if(isNaN(ARCADE_POINTS)) ARCADE_POINTS=0;
+    SNIPER_UNLOCKED = localStorage.getItem('neon_arcade_unlocked_sniper')==='true';
+  }catch(e){
+    ARCADE_POINTS=0; SNIPER_UNLOCKED=false;
+  }
+}
+function saveProgress(){
+  try{
+    localStorage.setItem('neon_arcade_points', String(ARCADE_POINTS));
+    localStorage.setItem('neon_arcade_unlocked_sniper', SNIPER_UNLOCKED ? 'true':'false');
+  }catch(e){ /* storage unavailable, ignore */ }
+}
+function awardPoints(n){
+  n=Math.max(0, Math.round(n));
+  if(n<=0) return;
+  ARCADE_POINTS+=n;
+  saveProgress();
+  updatePointsUI();
+}
+function updatePointsUI(){
+  const a=document.getElementById('pointsDisplay');
+  const b=document.getElementById('shopPointsDisplay');
+  if(a) a.textContent=String(ARCADE_POINTS);
+  if(b) b.textContent=String(ARCADE_POINTS);
+  updateSniperCabinetUI();
+  updateShopUI();
+}
+function updateSniperCabinetUI(){
+  const cab=document.getElementById('sniperCabinet');
+  const badge=document.getElementById('sniperCabinetBadge');
+  const desc=document.getElementById('sniperCabinetDesc');
+  if(!cab) return;
+  if(SNIPER_UNLOCKED){
+    cab.classList.remove('locked');
+    badge.textContent='✅ 보유중';
+    badge.style.color='var(--neon-green)';
+    badge.style.borderColor='var(--neon-green)';
+    desc.textContent='1:1 저격 듀얼 · 목숨 3개 · 라운드마다 맵 변경';
+  } else {
+    cab.classList.add('locked');
+    badge.textContent='🔒 상점에서 구매 필요';
+    badge.style.color='var(--neon-amber)';
+    badge.style.borderColor='var(--neon-amber)';
+  }
+}
+function updateShopUI(){
+  const btn=document.getElementById('buySniperBtn');
+  if(!btn) return;
+  if(SNIPER_UNLOCKED){
+    btn.textContent='구매 완료 ✅';
+    btn.disabled=true;
+  } else {
+    btn.textContent = ARCADE_POINTS>=500 ? '구매하기 (500 P)' : '포인트 부족 (500 P 필요)';
+    btn.disabled=false;
+  }
+}
+document.getElementById('buySniperBtn').addEventListener('click', function(){
+  if(SNIPER_UNLOCKED) return;
+  if(ARCADE_POINTS<500){
+    alert('포인트가 부족해요! 다른 게임을 더 플레이해서 포인트를 모아보세요.');
+    return;
+  }
+  ARCADE_POINTS-=500;
+  SNIPER_UNLOCKED=true;
+  saveProgress();
+  updatePointsUI();
+  alert('SNIPER DUEL 잠금 해제! 허브의 "상점 게임" 카테고리에서 플레이할 수 있어요.');
+});
+document.getElementById('openShopBtn').addEventListener('click', function(){ showScreen('shop'); });
+
 /* ============ NAVIGATION ============ */
 function showScreen(id){
   stopAllLoops();
@@ -471,9 +648,17 @@ function showScreen(id){
   if(id==='breakout') initBreakout();
   if(id==='wordchain') initWordChain();
   if(id==='callname') initCallName();
+  if(id==='sniper') initSniper();
 }
 document.querySelectorAll('.cabinet').forEach(btn=>{
-  btn.addEventListener('click', ()=> showScreen(btn.dataset.game));
+  btn.addEventListener('click', ()=>{
+    const game=btn.dataset.game;
+    if(game==='sniper' && !SNIPER_UNLOCKED){
+      showScreen('shop');
+      return;
+    }
+    showScreen(game);
+  });
 });
 document.querySelectorAll('[data-back]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -484,6 +669,9 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
 function stopAllLoops(){
   if(typeof snakeLoop!=='undefined' && snakeLoop) clearInterval(snakeLoop);
   if(typeof breakoutLoop!=='undefined' && breakoutLoop) cancelAnimationFrame(breakoutLoop);
+  if(typeof snLoop!=='undefined' && snLoop) cancelAnimationFrame(snLoop);
+  if(typeof snPeekTimer!=='undefined' && snPeekTimer) clearTimeout(snPeekTimer);
+  if(typeof snScheduleTimer!=='undefined' && snScheduleTimer) clearTimeout(snScheduleTimer);
 }
 
 /* ============ CATEGORY FILTER ============ */
@@ -499,19 +687,20 @@ document.querySelectorAll('.cat-btn').forEach(btn=>{
 });
 
 /* ============ SNAKE ============ */
-let snakeCtx, snakeLoop, snake, snakeDir, snakeNextDir, snakeFoods, snakeScore;
+let snakeCtx, snakeLoop, snake, snakeDir, snakeNextDir, snakeFoods, snakeScore, snakeAwarded;
 let snakeCols=25, snakeCell=16, snakeFoodCount=3, snakeAuto=false;
 function initSnake(){
   const canvas=document.getElementById('snakeCanvas');
   snakeCtx=canvas.getContext('2d');
   snake=[{x:12,y:12},{x:11,y:12},{x:10,y:12}];
   snakeDir={x:1,y:0}; snakeNextDir={x:1,y:0};
-  snakeScore=0;
+  snakeScore=0; snakeAwarded=false;
   snakeAuto=false;
   document.getElementById('snakeAuto').textContent='AUTO: OFF';
   document.getElementById('snakeAuto').classList.remove('toggle-on');
   document.getElementById('snakeScore').textContent='0';
   document.getElementById('snakeOver').classList.remove('show');
+  document.getElementById('snakeOver').textContent='GAME OVER';
   snakeFoods=[];
   while(snakeFoods.length<snakeFoodCount) placeSnakeFood();
   if(snakeLoop) clearInterval(snakeLoop);
@@ -565,6 +754,11 @@ function snakeStep(){
   if(head.x<0||head.y<0||head.x>=snakeCols||head.y>=snakeCols||snake.some(s=>s.x===head.x&&s.y===head.y)){
     clearInterval(snakeLoop);
     document.getElementById('snakeOver').classList.add('show');
+    if(!snakeAwarded){
+      snakeAwarded=true;
+      awardPoints(snakeScore*5);
+      document.getElementById('snakeOver').textContent='GAME OVER (+'+(snakeScore*5)+'P)';
+    }
     return;
   }
   snake.unshift(head);
@@ -618,7 +812,7 @@ sd.querySelector('.left').onclick=()=>{ snakeAuto=false; document.getElementById
 sd.querySelector('.right').onclick=()=>{ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; if(snakeDir.x!==-1) snakeNextDir={x:1,y:0}; };
 
 /* ============ 2048 ============ */
-let board2048, score2048=0;
+let board2048, score2048=0, g2048Awarded=false;
 const VNAMES=['empty','v2','v4','v8','v16','v32','v64','v128','v256','v512','v1024','v2048'];
 function valueClass(v){
   if(v===0) return 'empty';
@@ -630,9 +824,10 @@ function newBoard2048(){
 }
 function init2048(){
   board2048=newBoard2048();
-  score2048=0;
+  score2048=0; g2048Awarded=false;
   document.getElementById('score2048').textContent='0';
   document.getElementById('over2048').classList.remove('show');
+  document.getElementById('over2048').textContent='GAME OVER';
   addTile2048(); addTile2048();
   render2048();
   document.getElementById('grid2048').focus();
@@ -704,7 +899,11 @@ function move2048(dir){
   if(moved){
     addTile2048();
     render2048();
-    if(isGameOver2048()){
+    if(isGameOver2048() && !g2048Awarded){
+      g2048Awarded=true;
+      const pts=Math.floor(score2048/10);
+      awardPoints(pts);
+      document.getElementById('over2048').textContent='GAME OVER (+'+pts+'P)';
       document.getElementById('over2048').classList.add('show');
     }
   }
@@ -751,7 +950,7 @@ document.getElementById('grid2048').addEventListener('keydown', handle2048Key);
 document.getElementById('restart2048').addEventListener('click', init2048);
 
 /* ============ MEMORY ============ */
-let memoryCards, memoryFlipped, memoryMoves, memoryLock;
+let memoryCards, memoryFlipped, memoryMoves, memoryLock, memoryAwarded;
 const MEMORY_SYMBOLS=['🚀','🎮','👾','⭐','🔥','💎','🎧','🍀'];
 function initMemory(){
   const symbols=MEMORY_SYMBOLS.concat(MEMORY_SYMBOLS);
@@ -760,9 +959,10 @@ function initMemory(){
     const tmp=symbols[i]; symbols[i]=symbols[j]; symbols[j]=tmp;
   }
   memoryCards=symbols.map(function(s,i){ return {id:i, symbol:s, flipped:true, matched:false}; });
-  memoryFlipped=[]; memoryMoves=0; memoryLock=true;
+  memoryFlipped=[]; memoryMoves=0; memoryLock=true; memoryAwarded=false;
   document.getElementById('movesMemory').textContent='0';
   document.getElementById('overMemory').classList.remove('show');
+  document.getElementById('overMemory').textContent='CLEAR!';
   document.getElementById('memoryHint').textContent='카드를 잘 봐두세요! 곧 뒤집힙니다...';
   renderMemory();
   setTimeout(function(){
@@ -798,7 +998,11 @@ function flipMemory(id){
       a.matched=true; b.matched=true;
       memoryFlipped=[]; memoryLock=false;
       renderMemory();
-      if(memoryCards.every(function(c){ return c.matched; })){
+      if(memoryCards.every(function(c){ return c.matched; }) && !memoryAwarded){
+        memoryAwarded=true;
+        const pts=Math.max(20, 200-memoryMoves*10);
+        awardPoints(pts);
+        document.getElementById('overMemory').textContent='CLEAR! (+'+pts+'P)';
         document.getElementById('overMemory').classList.add('show');
       }
     } else {
@@ -813,14 +1017,14 @@ function flipMemory(id){
 document.getElementById('restartMemory').addEventListener('click', initMemory);
 
 /* ============ BREAKOUT ============ */
-let bCtx, breakoutLoop, paddle, balls, bricks, scoreBreakout, livesBreakout, bWidth=480, bHeight=320;
+let bCtx, breakoutLoop, paddle, balls, bricks, scoreBreakout, livesBreakout, breakoutAwarded, bWidth=480, bHeight=320;
 const BASE_SPEED=3.2, SPEED_GROWTH=1.06, MAX_SPEED=9, MAX_BALLS=5;
 function initBreakout(){
   const canvas=document.getElementById('breakoutCanvas');
   bCtx=canvas.getContext('2d');
   paddle={x:bWidth/2-40, y:bHeight-16, w:80, h:10, speed:6, dx:0};
   balls=[makeBall()];
-  scoreBreakout=0; livesBreakout=3;
+  scoreBreakout=0; livesBreakout=3; breakoutAwarded=false;
   document.getElementById('scoreBreakout').textContent='0';
   document.getElementById('livesBreakout').textContent='3';
   document.getElementById('ballsBreakout').textContent='1';
@@ -865,6 +1069,17 @@ function onPaddleHit(ball){
     document.getElementById('ballsBreakout').textContent=String(balls.length);
   }
 }
+function finishBreakout(text, won){
+  document.getElementById('overBreakout').classList.add('show');
+  if(!breakoutAwarded){
+    breakoutAwarded=true;
+    const pts = won ? scoreBreakout+100 : scoreBreakout;
+    awardPoints(pts);
+    document.getElementById('overBreakout').textContent=text+' (+'+pts+'P)';
+  } else {
+    document.getElementById('overBreakout').textContent=text;
+  }
+}
 function breakoutStep(){
   bCtx.fillStyle='#0c0a16'; bCtx.fillRect(0,0,bWidth,bHeight);
   bricks.forEach(function(b){
@@ -906,15 +1121,14 @@ function breakoutStep(){
   if(balls.length===0){
     livesBreakout--; document.getElementById('livesBreakout').textContent=String(livesBreakout);
     if(livesBreakout<=0){
-      document.getElementById('overBreakout').classList.add('show');
+      finishBreakout('GAME OVER', false);
       return;
     }
     balls=[makeBall()];
     document.getElementById('ballsBreakout').textContent='1';
   }
   if(bricks.every(function(b){ return !b.alive; })){
-    document.getElementById('overBreakout').classList.add('show');
-    document.getElementById('overBreakout').textContent='CLEAR!';
+    finishBreakout('CLEAR!', true);
     return;
   }
   breakoutLoop=requestAnimationFrame(breakoutStep);
@@ -959,7 +1173,7 @@ function wcEquivChars(ch){
 }
 function wcLast(w){ return w[w.length-1]; }
 function wcFirst(w){ return w[0]; }
-let wcUsed, wcCurrent, wcTurns, wcOverFlag;
+let wcUsed, wcCurrent, wcTurns, wcOverFlag, wcAwarded;
 function wcLog(text, cls){
   const log=document.getElementById('wcLog');
   const div=document.createElement('div');
@@ -971,7 +1185,7 @@ function wcLog(text, cls){
 function initWordChain(){
   wcUsed=new Set();
   wcTurns=0;
-  wcOverFlag=false;
+  wcOverFlag=false; wcAwarded=false;
   document.getElementById('wcLog').innerHTML='';
   document.getElementById('wcCount').textContent='0';
   document.getElementById('wcOver').classList.remove('show');
@@ -997,9 +1211,15 @@ function wcPickAiWord(requiredChar){
   });
   return best;
 }
-function wcEndGame(text){
+function wcEndGame(text, playerWon){
   wcOverFlag=true;
   wcLog(text,'system');
+  if(!wcAwarded){
+    wcAwarded=true;
+    const pts = wcTurns*8 + (playerWon?100:0);
+    awardPoints(pts);
+    document.getElementById('wcOver').textContent=(playerWon?'승리!':'GAME OVER')+' (+'+pts+'P)';
+  }
   document.getElementById('wcOver').classList.add('show');
   document.getElementById('wcInput').disabled=true;
   document.getElementById('wcSubmit').disabled=true;
@@ -1015,17 +1235,17 @@ function wcSubmitWord(){
   const accept=wcEquivChars(required);
   if(!accept.includes(wcFirst(word))){
     wcLog(word, 'player');
-    wcEndGame('"'+required+'"(으)로 시작하지 않는 단어예요. AI 승리!');
+    wcEndGame('"'+required+'"(으)로 시작하지 않는 단어예요. AI 승리!', false);
     return;
   }
   if(wcUsed.has(word)){
     wcLog(word, 'player');
-    wcEndGame('이미 사용한 단어예요. AI 승리!');
+    wcEndGame('이미 사용한 단어예요. AI 승리!', false);
     return;
   }
   if(!WC_WORDS.includes(word)){
     wcLog(word, 'player');
-    wcEndGame('사전에 없는 단어예요 (등록된 단어 목록 기준). AI 승리!');
+    wcEndGame('사전에 없는 단어예요 (등록된 단어 목록 기준). AI 승리!', false);
     return;
   }
   wcUsed.add(word);
@@ -1036,7 +1256,7 @@ function wcSubmitWord(){
   const nextChar=wcLast(word);
   const aiWord=wcPickAiWord(nextChar);
   if(!aiWord){
-    wcEndGame('AI가 "'+nextChar+'"(으)로 시작하는 단어를 더 못 찾았어요. 플레이어 승리! 🎉');
+    wcEndGame('AI가 "'+nextChar+'"(으)로 시작하는 단어를 더 못 찾았어요. 플레이어 승리! 🎉', true);
     return;
   }
   wcUsed.add(aiWord);
@@ -1089,7 +1309,7 @@ const CN_KEYWORD_MAP=[
   ['방송','방송인'],['예능','방송인'],['공주','공주'],['일본','일본'],
   ['아이','아이'],['어린이','아이'],['마법사','마법사']
 ];
-let cnSecret, cnCount, cnOverFlag, cnHintsUsed;
+let cnSecret, cnCount, cnOverFlag, cnHintsUsed, cnAwarded;
 function cnLogMsg(text, cls){
   const log=document.getElementById('cnLog');
   const div=document.createElement('div');
@@ -1100,7 +1320,7 @@ function cnLogMsg(text, cls){
 }
 function initCallName(){
   cnSecret=CN_CHARACTERS[Math.floor(Math.random()*CN_CHARACTERS.length)];
-  cnCount=0; cnOverFlag=false; cnHintsUsed=0;
+  cnCount=0; cnOverFlag=false; cnHintsUsed=0; cnAwarded=false;
   document.getElementById('cnLog').innerHTML='';
   document.getElementById('cnCount').textContent='0';
   document.getElementById('cnOver').classList.remove('show');
@@ -1111,9 +1331,15 @@ function initCallName(){
   document.getElementById('cnHint').textContent='AI가 인물을 하나 정했어요. 예/아니오로 답할 수 있는 질문을 던져서 정체를 추리하세요 (최대 20번)';
   cnLogMsg('인물을 정했어요! 질문을 시작하세요 (예: "남자인가요?", "실존 인물인가요?")', 'system');
 }
-function cnEndGame(text){
+function cnEndGame(text, playerWon){
   cnOverFlag=true;
   cnLogMsg(text, 'system');
+  if(!cnAwarded){
+    cnAwarded=true;
+    const pts = playerWon ? (21-cnCount)*15+100 : 50;
+    awardPoints(pts);
+    document.getElementById('cnOver').textContent=(playerWon?'정답!':'GAME OVER')+' (+'+pts+'P)';
+  }
   document.getElementById('cnOver').classList.add('show');
   document.getElementById('cnInput').disabled=true;
   document.getElementById('cnGuessInput').disabled=true;
@@ -1142,7 +1368,7 @@ function cnAskQuestion(){
   }
   setTimeout(function(){ cnLogMsg(answer, 'ai'); }, 300);
   if(cnCount>=20){
-    setTimeout(function(){ cnEndGame('20번의 질문을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.'); }, 500);
+    setTimeout(function(){ cnEndGame('20번의 질문을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.', false); }, 500);
   }
 }
 function cnSubmitGuess(){
@@ -1154,13 +1380,13 @@ function cnSubmitGuess(){
   cnLogMsg('정답: '+guess, 'player');
   const norm=function(s){ return s.replace(/\s/g,'').toLowerCase(); };
   if(norm(guess)===norm(cnSecret.name)){
-    setTimeout(function(){ cnEndGame('정답입니다! 🎉 "'+cnSecret.name+'" 이었어요. 질문 '+cnCount+'번 만에 맞혔어요!'); }, 300);
+    setTimeout(function(){ cnEndGame('정답입니다! 🎉 "'+cnSecret.name+'" 이었어요. 질문 '+cnCount+'번 만에 맞혔어요!', true); }, 300);
   } else {
     cnCount++;
     document.getElementById('cnCount').textContent=String(cnCount);
     setTimeout(function(){ cnLogMsg('땡! 아니에요.', 'ai'); }, 300);
     if(cnCount>=20){
-      setTimeout(function(){ cnEndGame('20번을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.'); }, 500);
+      setTimeout(function(){ cnEndGame('20번을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.', false); }, 500);
     }
   }
 }
@@ -1178,6 +1404,179 @@ document.getElementById('cnHintBtn').addEventListener('click', function(){
   document.getElementById('cnCount').textContent=String(cnCount);
 });
 document.getElementById('cnRestart').addEventListener('click', initCallName);
+
+/* ============ SNIPER DUEL — 상점 게임 ============ */
+let snCtx, snLoop, snPeekTimer, snScheduleTimer;
+let snMap, snEnemy, snPlayerLives, snEnemyLives, snRoundNum, snHits, snGameOver, snMouseX, snMouseY, snAwarded;
+const SN_PALETTES=[
+  ['#2a0a3d','#5c1a6b'], ['#0a2a3d','#1a5c6b'], ['#3d0a1a','#6b1a3c'],
+  ['#0a3d1f','#1a6b3f'], ['#3d2a0a','#6b5c1a']
+];
+function snGenerateMap(){
+  const palette=SN_PALETTES[Math.floor(Math.random()*SN_PALETTES.length)];
+  const count=4+Math.floor(Math.random()*3);
+  const obstacles=[];
+  const spacing=480/count;
+  for(let i=0;i<count;i++){
+    const w=40+Math.random()*30;
+    const h=40+Math.random()*40;
+    const x=i*spacing + Math.random()*(spacing-w-8) + 4;
+    const y=320-40-h;
+    obstacles.push({x:x, y:y, w:w, h:h});
+  }
+  return {palette:palette, obstacles:obstacles};
+}
+function snUpdateHearts(){
+  const mk=function(n){
+    let s='';
+    for(let i=0;i<3;i++){ s += (i<n) ? '❤' : '<span class="lost">♡</span>'; }
+    return s;
+  };
+  document.getElementById('snPlayerHearts').innerHTML=mk(snPlayerLives);
+  document.getElementById('snEnemyHearts').innerHTML=mk(snEnemyLives);
+  document.getElementById('snRound').textContent=String(snRoundNum+1);
+}
+function initSniper(){
+  const canvas=document.getElementById('sniperCanvas');
+  snCtx=canvas.getContext('2d');
+  snPlayerLives=3; snEnemyLives=3; snRoundNum=0; snHits=0; snGameOver=false; snAwarded=false;
+  snEnemy=null;
+  snMouseX=240; snMouseY=160;
+  document.getElementById('snOver').classList.remove('show');
+  document.getElementById('snOver').textContent='GAME OVER';
+  snUpdateHearts();
+  snMap=snGenerateMap();
+  canvas.focus();
+  snScheduleNextPeek();
+  snDrawLoop();
+}
+function snScheduleNextPeek(){
+  const delay=400+Math.random()*700;
+  snScheduleTimer=setTimeout(function(){
+    if(snGameOver) return;
+    snStartPeek();
+  }, delay);
+}
+function snStartPeek(){
+  const obstacle=snMap.obstacles[Math.floor(Math.random()*snMap.obstacles.length)];
+  const duration=Math.max(420, 900-snRoundNum*25);
+  snEnemy={
+    x: obstacle.x + obstacle.w/2 - 15,
+    y: obstacle.y - 34,
+    w: 30, h: 34,
+    shownAt: performance.now(),
+    duration: duration
+  };
+  snPeekTimer=setTimeout(function(){ snResolvePeek(false); }, duration);
+}
+function snResolvePeek(hitSuccess){
+  if(!snEnemy || snGameOver) return;
+  snEnemy=null;
+  if(hitSuccess){
+    snHits++;
+    snEnemyLives--;
+    snUpdateHearts();
+    if(snEnemyLives<=0){ snEndGame(true); return; }
+  } else {
+    snPlayerLives--;
+    snUpdateHearts();
+    if(snPlayerLives<=0){ snEndGame(false); return; }
+  }
+  snRoundNum++;
+  snMap=snGenerateMap();
+  snUpdateHearts();
+  snScheduleNextPeek();
+}
+function snEndGame(playerWon){
+  snGameOver=true;
+  if(snPeekTimer) clearTimeout(snPeekTimer);
+  if(snScheduleTimer) clearTimeout(snScheduleTimer);
+  if(snLoop) cancelAnimationFrame(snLoop);
+  let pts=0;
+  if(!snAwarded){
+    snAwarded=true;
+    pts = playerWon ? 300+snHits*30 : snHits*20;
+    awardPoints(pts);
+  }
+  document.getElementById('snOver').textContent = (playerWon ? '승리! 🎯' : 'GAME OVER') + ' (+'+pts+'P)';
+  document.getElementById('snOver').classList.add('show');
+}
+function snDrawLoop(){
+  const w=480, h=320;
+  const grad=snCtx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0, snMap.palette[0]);
+  grad.addColorStop(1, snMap.palette[1]);
+  snCtx.fillStyle=grad;
+  snCtx.fillRect(0,0,w,h);
+  snCtx.fillStyle='rgba(0,0,0,0.25)';
+  snCtx.fillRect(0,h-40,w,40);
+  snMap.obstacles.forEach(function(ob){
+    snCtx.fillStyle='#151020';
+    snCtx.strokeStyle='rgba(255,255,255,0.15)';
+    snCtx.lineWidth=2;
+    snCtx.fillRect(ob.x, ob.y, ob.w, ob.h);
+    snCtx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+  });
+  if(snEnemy){
+    const elapsed=performance.now()-snEnemy.shownAt;
+    const remain=1-(elapsed/snEnemy.duration);
+    snCtx.fillStyle='#ff5c5c';
+    snCtx.shadowColor='#ff5c5c'; snCtx.shadowBlur=12;
+    snCtx.beginPath();
+    snCtx.arc(snEnemy.x+snEnemy.w/2, snEnemy.y+snEnemy.h/2, 14, 0, Math.PI*2);
+    snCtx.fill();
+    snCtx.shadowBlur=0;
+    snCtx.fillStyle='rgba(255,92,92,0.35)';
+    snCtx.fillRect(snEnemy.x-2, snEnemy.y+snEnemy.h+4, (snEnemy.w+4)*Math.max(0,remain), 4);
+  }
+  snCtx.strokeStyle='#4ce0d2';
+  snCtx.lineWidth=2;
+  snCtx.beginPath();
+  snCtx.arc(snMouseX, snMouseY, 12, 0, Math.PI*2);
+  snCtx.moveTo(snMouseX-18, snMouseY); snCtx.lineTo(snMouseX+18, snMouseY);
+  snCtx.moveTo(snMouseX, snMouseY-18); snCtx.lineTo(snMouseX, snMouseY+18);
+  snCtx.stroke();
+  if(!snGameOver){
+    snLoop=requestAnimationFrame(snDrawLoop);
+  }
+}
+function snHandleShot(clientX, clientY){
+  if(snGameOver) return;
+  const canvas=document.getElementById('sniperCanvas');
+  const rect=canvas.getBoundingClientRect();
+  const x=(clientX-rect.left)*(canvas.width/rect.width);
+  const y=(clientY-rect.top)*(canvas.height/rect.height);
+  if(snEnemy && x>=snEnemy.x && x<=snEnemy.x+snEnemy.w && y>=snEnemy.y && y<=snEnemy.y+snEnemy.h){
+    if(snPeekTimer) clearTimeout(snPeekTimer);
+    snResolvePeek(true);
+  }
+}
+document.getElementById('sniperCanvas').addEventListener('mousemove', function(e){
+  const rect=e.target.getBoundingClientRect();
+  snMouseX=(e.clientX-rect.left)*(480/rect.width);
+  snMouseY=(e.clientY-rect.top)*(320/rect.height);
+});
+document.getElementById('sniperCanvas').addEventListener('click', function(e){
+  snHandleShot(e.clientX, e.clientY);
+});
+document.getElementById('sniperCanvas').addEventListener('touchstart', function(e){
+  e.preventDefault();
+  const t=e.touches[0];
+  snMouseX=(t.clientX-e.target.getBoundingClientRect().left)*(480/e.target.getBoundingClientRect().width);
+  snMouseY=(t.clientY-e.target.getBoundingClientRect().top)*(320/e.target.getBoundingClientRect().height);
+  snHandleShot(t.clientX, t.clientY);
+},{passive:false});
+document.getElementById('snRestart').addEventListener('click', initSniper);
+
+/* ============ INIT ============ */
+loadProgress();
+updatePointsUI();
 </script>
 </body>
 </html>
+'''
+
+with open('/mnt/user-data/outputs/game_hub.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("게임 허브 HTML 파일(v4: 상점 + 포인트 + 스나이퍼 듀얼) 생성 완료!")
