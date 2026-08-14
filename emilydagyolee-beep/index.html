@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RETRO RPG | CHARACTER SYSTEM FIXED</title>
+    <title>ULTIMATE RETRO RPG PORTFOLIO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
@@ -11,436 +11,446 @@
             --neon-green: #39FF14;
             --neon-magenta: #FF00FF;
             --retro-black: #0d0d0d;
+            --retro-gold: #FFD700;
         }
-
         body {
             font-family: 'Press Start 2P', cursive;
             background-color: var(--retro-black);
             color: #fff;
             image-rendering: pixelated;
-            scroll-behavior: smooth;
+            overflow-x: hidden;
         }
 
-        /* 8-Bit UI Elements */
-        .pixel-border {
-            border: 4px solid #fff;
-            box-shadow: 6px 6px 0px #333;
-            background: #000;
-        }
+        /* UI Helpers */
+        .pixel-border { border: 4px solid #fff; box-shadow: 6px 6px 0px #333; background: #000; }
+        .pixel-btn { background: #222; border: 4px solid #fff; padding: 10px; cursor: pointer; font-size: 10px; transition: 0.1s; }
+        .pixel-btn:hover:not(:disabled) { background: var(--neon-magenta); color: #000; }
+        .pixel-btn.active { background: var(--neon-green); color: #000; }
+        
+        /* Exp Bar */
+        .exp-container { height: 24px; background: #333; border: 3px solid #fff; position: relative; }
+        .exp-bar { height: 100%; background: var(--neon-green); width: 0%; transition: width 0.3s; }
 
-        .pixel-btn {
-            background: #222;
-            border: 4px solid #fff;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: all 0.1s;
-            font-size: 10px;
-            display: inline-block;
-            user-select: none;
-        }
-
-        .pixel-btn:hover:not(:disabled) {
-            background: var(--neon-magenta);
-            color: #000;
-        }
-
-        .pixel-btn:active:not(:disabled) {
-            transform: translate(3px, 3px);
-            box-shadow: none;
-        }
-
-        .pixel-btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        /* Screen Shake */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            80% { transform: translate(3px, 1px) rotate(-1deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-        .shake-effect { animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both; }
-
-        /* Game Grid */
-        .grid-hole {
-            aspect-ratio: 1 / 1;
-            background: #1a1a1a;
-            border: 4px solid #444;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .monster {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            bottom: -100%;
-            transition: bottom 0.1s ease-out;
-            cursor: pointer;
-        }
+        /* Games */
+        .grid-hole { aspect-ratio: 1/1; background: #1a1a1a; border: 4px solid #444; position: relative; overflow: hidden; }
+        .monster { position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 28px; bottom: -100%; transition: bottom 0.1s; cursor: pointer; }
         .monster.up { bottom: 0; }
 
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #fff; border: 2px solid #000; }
+        .memory-card { aspect-ratio: 1/1; background: #222; border: 2px solid #fff; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; }
+        .memory-card.flipped { background: #444; }
+        .memory-card.matched { visibility: hidden; }
+
+        .shake { animation: shake 0.2s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translate(0,0); }
+            25% { transform: translate(-4px, 4px); }
+            50% { transform: translate(4px, -4px); }
+        }
+
+        .hidden-game { display: none; }
     </style>
 </head>
-<body>
+<body class="p-4">
 
-    <div id="master-wrapper">
-        <!-- HEADER: NAME & SOUND -->
-        <header class="max-w-6xl mx-auto p-6 flex flex-wrap justify-between items-center gap-6 border-b-4 border-white mb-10">
-            <div class="text-xl text-neon-green">HERO_QUEST.EXE</div>
-            
-            <div class="flex items-center gap-2 bg-gray-900 p-2 border-2 border-white">
-                <input type="text" id="player-name-input" maxlength="8" placeholder="ENTER NAME" class="bg-transparent border-none outline-none text-[10px] w-24 placeholder-gray-600 uppercase">
-                <button onclick="applyName()" class="pixel-btn !p-1 !border-2 text-[8px]">SET</button>
+    <div id="master-screen" class="max-w-6xl mx-auto">
+        
+        <!-- TOP STATUS BAR -->
+        <header class="pixel-border p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="nick-input" placeholder="NICKNAME" class="bg-black border-b-2 border-white outline-none text-neon-green text-[10px] w-32 uppercase">
+                        <button onclick="saveNick()" class="pixel-btn !p-1">SET</button>
+                    </div>
+                    <p class="text-[12px] text-neon-magenta">HERO: <span id="disp-nick">PLAYER</span></p>
+                    <p class="text-[14px] mt-2">LV.<span id="disp-lvl" class="text-neon-green">1</span></p>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex justify-between text-[10px] mb-2">
+                        <span>EXP: <span id="exp-cur">0</span> / <span id="exp-max">50</span></span>
+                        <span class="text-retro-gold">GOLD: <span id="disp-gold">100</span>G</span>
+                    </div>
+                    <div class="exp-container">
+                        <div id="exp-bar" class="exp-bar"></div>
+                    </div>
+                    <div class="flex justify-end gap-4 mt-2">
+                        <span class="text-[10px]">POINTS: <span id="disp-points" class="text-neon-magenta">0</span></span>
+                        <button onclick="toggleSound()" id="sound-btn" class="text-[10px] text-red-500">SOUND: OFF</button>
+                    </div>
+                </div>
             </div>
-
-            <nav class="flex gap-4 text-[10px]">
-                <button id="sound-toggle" onclick="toggleAudio()" class="text-red-500">SOUND: OFF</button>
-            </nav>
         </header>
 
-        <!-- CHARACTER SET SECTION (FIXED) -->
-        <section id="character-set" class="max-w-5xl mx-auto px-4 mb-16 grid grid-cols-1 md:grid-cols-2 gap-10">
-            <!-- Stats Distribution -->
-            <div class="pixel-border p-6 border-neon-green">
-                <h2 class="text-sm mb-4">CHARACTER SET</h2>
-                <div class="flex justify-between items-center mb-6">
-                    <p class="text-[10px] text-gray-400">AVAILABLE POINTS:</p>
-                    <span id="stat-points" class="text-lg text-white">10</span>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            <!-- LEFT: STATS -->
+            <div class="pixel-border p-4 h-fit">
+                <h3 class="text-[10px] mb-6 underline text-neon-green">STATUS</h3>
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px]">STR</span>
+                        <div class="flex items-center gap-2">
+                            <span id="s-str">0</span>
+                            <button onclick="upStat('str')" class="pixel-btn !p-1 text-[12px]">+</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px]">DEX</span>
+                        <div class="flex items-center gap-2">
+                            <span id="s-dex">0</span>
+                            <button onclick="upStat('dex')" class="pixel-btn !p-1 text-[12px]">+</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px]">INT</span>
+                        <div class="flex items-center gap-2">
+                            <span id="s-int">0</span>
+                            <button onclick="upStat('int')" class="pixel-btn !p-1 text-[12px]">+</button>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px]">LUK</span>
+                        <div class="flex items-center gap-2">
+                            <span id="s-luk">0</span>
+                            <button onclick="upStat('luk')" class="pixel-btn !p-1 text-[12px]">+</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            <!-- CENTER: MAIN GAME ENGINE -->
+            <div class="pixel-border p-6 lg:col-span-3">
                 
-                <div class="space-y-4">
-                    <!-- STR -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] block">STR (POWER)</span>
-                            <span class="text-[8px] text-gray-500 font-sans">Score/Gold +Bonus</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="changeStat('str', -1)" class="pixel-btn">-</button>
-                            <span id="val-str" class="text-sm w-6 text-center">0</span>
-                            <button onclick="changeStat('str', 1)" class="pixel-btn">+</button>
-                        </div>
-                    </div>
-                    <!-- DEX -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] block">DEX (AGILITY)</span>
-                            <span class="text-[8px] text-gray-500 font-sans">Monster Stay Duration Up</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="changeStat('dex', -1)" class="pixel-btn">-</button>
-                            <span id="val-dex" class="text-sm w-6 text-center">0</span>
-                            <button onclick="changeStat('dex', 1)" class="pixel-btn">+</button>
-                        </div>
-                    </div>
-                    <!-- INT -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] block">INT (WISDOM)</span>
-                            <span class="text-[8px] text-gray-500 font-sans">Spawn Speed Frequency Up</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="changeStat('int', -1)" class="pixel-btn">-</button>
-                            <span id="val-int" class="text-sm w-6 text-center">0</span>
-                            <button onclick="changeStat('int', 1)" class="pixel-btn">+</button>
-                        </div>
-                    </div>
-                    <!-- LUK -->
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] block">LUK (LUCK)</span>
-                            <span class="text-[8px] text-gray-500 font-sans">Golden Monster Chance Up</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <button onclick="changeStat('luk', -1)" class="pixel-btn">-</button>
-                            <span id="val-luk" class="text-sm w-6 text-center">0</span>
-                            <button onclick="changeStat('luk', 1)" class="pixel-btn">+</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- GAME TABS -->
+                <nav class="flex flex-wrap gap-2 mb-8 border-b-2 border-gray-800 pb-4">
+                    <button onclick="switchTab('hunt')" class="tab-btn pixel-btn active">MONSTER HUNT</button>
+                    <button onclick="switchTab('memory')" class="tab-btn pixel-btn">MEMORY MASTER</button>
+                    <button onclick="switchTab('math')" class="tab-btn pixel-btn">QUICK MATH</button>
+                    <button onclick="switchTab('luck')" class="tab-btn pixel-btn">SLOTS</button>
+                    <button onclick="switchTab('shop')" class="tab-btn pixel-btn">SHOP</button>
+                </nav>
 
-            <!-- Profile & Inventory -->
-            <div class="pixel-border p-6 border-neon-magenta flex flex-col h-full">
-                <h2 class="text-sm mb-4">HERO PROFILE</h2>
-                <div class="bg-gray-900 p-4 mb-4 border-2 border-dashed border-gray-600">
-                    <p class="text-[10px]">NAME: <span class="player-name-disp text-neon-magenta font-bold">PLAYER</span></p>
-                    <p class="text-[10px] mt-2">CLASS: <span id="player-class" class="text-neon-green">NOVICE</span></p>
-                    <p class="text-[10px] mt-2 text-yellow-400">GOLD: <span id="gold-val">0</span>G</p>
+                <!-- DIFFICULTY SELECTOR -->
+                <div id="diff-selector" class="mb-8 p-4 border-2 border-dashed border-gray-700 text-center">
+                    <p class="text-[10px] mb-4">SELECT DIFFICULTY (Rewards Multiplier)</p>
+                    <div class="flex justify-center flex-wrap gap-2">
+                        <button onclick="setDiff(1, this)" class="diff-btn pixel-btn active">EASY (x1)</button>
+                        <button onclick="setDiff(1.5, this)" class="diff-btn pixel-btn">NORMAL (x1.5)</button>
+                        <button onclick="setDiff(2.5, this)" class="diff-btn pixel-btn">HARD (x2.5)</button>
+                        <button onclick="setDiff(5, this)" class="diff-btn pixel-btn">INSANE (x5)</button>
+                    </div>
                 </div>
-                <p class="text-[8px] mb-2 text-gray-500">INVENTORY:</p>
-                <div id="inventory-list" class="flex flex-wrap gap-2 flex-grow content-start overflow-y-auto max-h-32">
-                    <!-- Items -->
-                </div>
-            </div>
-        </section>
 
-        <!-- GAME SECTION -->
-        <section id="game" class="max-w-5xl mx-auto px-4 mb-20">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-lg text-neon-green">MONSTER HUNT</h2>
-                    <p class="text-[8px] text-gray-500 mt-1">HINT: UPGRADE DEX TO CATCH FAST MONSTERS!</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[8px] text-gray-400">SCORE: <span id="score" class="text-lg text-white">0</span></p>
-                    <p class="text-[8px] text-gray-400">TIME: <span id="timer" class="text-lg text-magenta-500">30</span></p>
-                </div>
-            </div>
-
-            <div id="game-grid" class="grid grid-cols-3 gap-2 max-w-[360px] mx-auto relative">
-                <div class="grid-hole"><div class="monster" data-idx="0"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="1"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="2"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="3"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="4"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="5"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="6"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="7"></div></div>
-                <div class="grid-hole"><div class="monster" data-idx="8"></div></div>
+                <!-- GAME CONTAINERS -->
                 
-                <div id="game-overlay" class="absolute inset-0 bg-black/90 flex flex-col justify-center items-center z-10 text-center">
-                    <button onclick="startGame()" class="pixel-btn text-base px-6">START GAME</button>
+                <!-- 1. Monster Hunt -->
+                <div id="game-hunt" class="game-container">
+                    <div class="flex justify-between text-[10px] mb-4 text-neon-magenta">
+                        <span>TIME: <span id="hunt-time">20</span>s</span>
+                        <span>SCORE: <span id="hunt-score">0</span></span>
+                    </div>
+                    <div id="hunt-grid" class="grid grid-cols-3 gap-2 max-w-[300px] mx-auto relative">
+                        <!-- JS generated -->
+                        <div id="hunt-overlay" class="absolute inset-0 bg-black/90 z-20 flex items-center justify-center">
+                            <button onclick="startHunt()" class="pixel-btn !bg-neon-green !text-black">START HUNTING</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- SHOP SECTION -->
-        <section class="max-w-5xl mx-auto px-4 mb-20">
-            <div class="pixel-border p-6">
-                <h2 class="text-sm mb-6 text-yellow-400">PIXEL SHOP</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="border-2 border-gray-700 p-4 text-center">
-                        <p class="text-[10px] mb-2 font-bold">LEGEND SWORD</p>
-                        <p class="text-[8px] text-gray-500 mb-4">DURABILITY++</p>
-                        <button onclick="buyItem('Legend Sword', 500)" class="pixel-btn">500G</button>
-                    </div>
-                    <div class="border-2 border-gray-700 p-4 text-center">
-                        <p class="text-[10px] mb-2 font-bold">SPEED BOOTS</p>
-                        <p class="text-[8px] text-gray-500 mb-4">MOVEMENT++</p>
-                        <button onclick="buyItem('Speed Boots', 800)" class="pixel-btn">800G</button>
-                    </div>
-                    <div class="border-2 border-gray-700 p-4 text-center">
-                        <p class="text-[10px] mb-2 font-bold">GOD'S CROWN</p>
-                        <p class="text-[8px] text-gray-500 mb-4">STATUS++</p>
-                        <button onclick="buyItem('God Crown', 2000)" class="pixel-btn">2000G</button>
+                <!-- 2. Memory Master -->
+                <div id="game-memory" class="game-container hidden-game">
+                    <div id="memory-grid" class="grid grid-cols-4 gap-2 max-w-[320px] mx-auto mb-6"></div>
+                    <div class="text-center">
+                        <button id="mem-btn" onclick="startMemory()" class="pixel-btn">START MEMORY TEST</button>
                     </div>
                 </div>
+
+                <!-- 3. Quick Math -->
+                <div id="game-math" class="game-container hidden-game text-center">
+                    <div class="mb-8">
+                        <p class="text-[10px] mb-2 text-gray-400">SOLVE BEFORE TIME RUNS OUT!</p>
+                        <h2 id="math-problem" class="text-2xl mb-6">READY?</h2>
+                        <input type="number" id="math-input" class="bg-black border-4 border-white p-2 text-center w-32 text-xl outline-none" disabled>
+                    </div>
+                    <div class="text-center">
+                        <button id="math-btn" onclick="startMath()" class="pixel-btn">START MATH DUEL</button>
+                    </div>
+                    <div class="text-[10px] mt-4">TIME: <span id="math-time">0</span>s | SCORE: <span id="math-score">0</span></div>
+                </div>
+
+                <!-- 4. Slots & Shop (기존 로직 유지) -->
+                <div id="game-luck" class="game-container hidden-game text-center">
+                    <div class="flex justify-center gap-2 mb-8">
+                        <div id="sl-1" class="w-16 h-24 bg-white text-black text-3xl flex items-center justify-center border-4 border-neon-magenta">?</div>
+                        <div id="sl-2" class="w-16 h-24 bg-white text-black text-3xl flex items-center justify-center border-4 border-neon-magenta">?</div>
+                        <div id="sl-3" class="w-16 h-24 bg-white text-black text-3xl flex items-center justify-center border-4 border-neon-magenta">?</div>
+                    </div>
+                    <button onclick="spin()" id="spin-btn" class="pixel-btn !bg-yellow-600">SPIN (100G)</button>
+                </div>
+
+                <div id="game-shop" class="game-container hidden-game">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 border border-gray-700">
+                            <div><p class="text-[10px]">MYSTIC EXP JUICE</p><p class="text-[8px] text-gray-500">+200 EXP</p></div>
+                            <button onclick="buy('exp', 300)" class="pixel-btn">300G</button>
+                        </div>
+                        <div class="flex justify-between items-center p-3 border border-gray-700">
+                            <div><p class="text-[10px]">WARRIOR'S EMBLEM</p><p class="text-[8px] text-gray-500">STR +3</p></div>
+                            <button onclick="buy('str', 1000)" class="pixel-btn">1000G</button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </section>
+        </div>
+
+        <!-- LOG SYSTEM -->
+        <footer id="log" class="pixel-border mt-8 p-4 bg-gray-900 text-[10px] h-32 overflow-y-auto leading-relaxed text-gray-400">
+            > SYSTEM BOOTED...<br>
+            > WELCOME, HERO. CHOOSE A MISSION.<br>
+        </footer>
     </div>
 
     <script>
-        /* --- CORE STATE --- */
+        /* --- STATE --- */
         let state = {
-            name: localStorage.getItem('rpg_v4_name') || 'PLAYER',
-            gold: parseInt(localStorage.getItem('rpg_v4_gold')) || 0,
-            stats: JSON.parse(localStorage.getItem('rpg_v4_stats')) || { str: 0, dex: 0, int: 0, luk: 0 },
-            statPoints: localStorage.getItem('rpg_v4_points') !== null ? parseInt(localStorage.getItem('rpg_v4_points')) : 10,
-            inventory: JSON.parse(localStorage.getItem('rpg_v4_inv')) || [],
-            audioOn: false
+            nick: 'PLAYER', level: 1, exp: 0, expMax: 50, gold: 100, points: 0,
+            stats: { str: 0, dex: 0, int: 0, luk: 0 },
+            diff: 1, audio: false
         };
 
         /* --- AUDIO --- */
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSfx(freq, type, duration) {
-            if (!state.audioOn) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+        function sfx(f, t, d) {
+            if(!state.audio) return;
+            const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
+            o.connect(g); g.connect(audioCtx.destination);
+            o.start(); o.stop(audioCtx.currentTime + d);
+        }
+        function toggleSound() {
+            state.audio = !state.audio;
+            document.getElementById('sound-btn').innerText = `SOUND: ${state.audio?'ON':'OFF'}`;
+            document.getElementById('sound-btn').className = `text-[10px] ${state.audio?'text-green-500':'text-red-500'}`;
+            if(audioCtx.state === 'suspended') audioCtx.resume();
         }
 
-        function toggleAudio() {
-            state.audioOn = !state.audioOn;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const btn = document.getElementById('sound-toggle');
-            btn.innerText = `SOUND: ${state.audioOn ? 'ON' : 'OFF'}`;
-            btn.className = state.audioOn ? 'text-green-500 font-bold' : 'text-red-500';
-            if (state.audioOn) playSfx(600, 'sine', 0.1);
+        /* --- CORE SYSTEM --- */
+        function log(m) {
+            const l = document.getElementById('log');
+            l.innerHTML += `> ${m}<br>`;
+            l.scrollTop = l.scrollHeight;
         }
 
-        /* --- UI UPDATE ENGINE --- */
-        function syncUI() {
-            // Text Sync
-            document.querySelectorAll('.player-name-disp').forEach(el => el.innerText = state.name);
-            document.getElementById('gold-val').innerText = state.gold;
-            document.getElementById('stat-points').innerText = state.statPoints;
+        function gainExp(amt) {
+            const intBonus = 1 + (state.stats.int * 0.1);
+            const total = Math.floor(amt * state.diff * intBonus);
+            state.exp += total;
+            log(`<span class="text-neon-green">GAINED ${total} EXP (x${state.diff} Diff, INT Bonus +${Math.floor(intBonus*100-100)}%)</span>`);
             
-            // Stat Numbers
-            for (let key in state.stats) {
-                document.getElementById(`val-${key}`).innerText = state.stats[key];
+            while(state.exp >= state.expMax) {
+                state.exp -= state.expMax;
+                state.level++;
+                state.points++;
+                state.expMax = Math.floor(state.expMax * 1.5);
+                log(`<span class="text-neon-magenta">LEVEL UP! LV.${state.level}</span>`);
+                sfx(800, 'square', 0.5);
             }
-
-            // Inventory Rendering
-            const invContainer = document.getElementById('inventory-list');
-            invContainer.innerHTML = state.inventory.map(item => 
-                `<div class="bg-white text-black text-[8px] p-1 border-2 border-gray-400 font-bold"># ${item}</div>`
-            ).join('');
-            if (state.inventory.length === 0) invContainer.innerHTML = '<p class="text-[8px] text-gray-600 italic">EMPTY...</p>';
-
-            // Class System Based on Stats
-            const classText = document.getElementById('player-class');
-            const totalStats = state.stats.str + state.stats.dex + state.stats.int + state.stats.luk;
-            if (totalStats >= 10) {
-                if (state.stats.str >= 5) classText.innerText = "WARRIOR";
-                else if (state.stats.dex >= 5) classText.innerText = "RANGER";
-                else if (state.stats.int >= 5) classText.innerText = "WIZARD";
-                else if (state.stats.luk >= 5) classText.innerText = "GAMBLER";
-                else classText.innerText = "ADVENTURER";
-            } else {
-                classText.innerText = "NOVICE";
-            }
-
-            // Persistence
-            localStorage.setItem('rpg_v4_name', state.name);
-            localStorage.setItem('rpg_v4_gold', state.gold);
-            localStorage.setItem('rpg_v4_stats', JSON.stringify(state.stats));
-            localStorage.setItem('rpg_v4_points', state.statPoints);
-            localStorage.setItem('rpg_v4_inv', JSON.stringify(state.inventory));
+            updateUI();
         }
 
-        /* --- CHARACTER SET LOGIC --- */
-        function applyName() {
-            const input = document.getElementById('player-name-input');
-            if (input.value.trim()) {
-                state.name = input.value.trim().toUpperCase();
-                syncUI();
-                playSfx(880, 'sine', 0.1);
-                input.value = "";
+        function updateUI() {
+            document.getElementById('disp-lvl').innerText = state.level;
+            document.getElementById('disp-gold').innerText = state.gold;
+            document.getElementById('disp-points').innerText = state.points;
+            document.getElementById('exp-cur').innerText = state.exp;
+            document.getElementById('exp-max').innerText = state.expMax;
+            document.getElementById('exp-bar').style.width = (state.exp / state.expMax * 100) + '%';
+            for(let s in state.stats) document.getElementById(`s-${s}`).innerText = state.stats[s];
+        }
+
+        function upStat(s) {
+            if(state.points > 0) {
+                state.stats[s]++;
+                state.points--;
+                log(`UPGRADED ${s.toUpperCase()}.`);
+                sfx(600, 'sine', 0.1);
+                updateUI();
             }
         }
 
-        function changeStat(stat, amount) {
-            if (amount > 0 && state.statPoints > 0) {
-                state.stats[stat]++;
-                state.statPoints--;
-            } else if (amount < 0 && state.stats[stat] > 0) {
-                state.stats[stat]--;
-                state.statPoints++;
-            } else {
-                return; // 제한 조건
-            }
-            playSfx(440 + (state.stats[stat] * 50), 'sine', 0.05);
-            syncUI();
+        function setDiff(v, btn) {
+            state.diff = v;
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            sfx(400, 'sine', 0.05);
         }
 
-        function buyItem(itemName, price) {
-            if (state.inventory.includes(itemName)) {
-                alert("ALREADY OWNED!");
-                return;
-            }
-            if (state.gold >= price) {
-                state.gold -= price;
-                state.inventory.push(itemName);
-                playSfx(1200, 'sine', 0.2);
-                syncUI();
-                alert(`PURCHASED: ${itemName}!`);
-            } else {
-                alert("NOT ENOUGH GOLD!");
-            }
+        function switchTab(t) {
+            document.querySelectorAll('.game-container').forEach(c => c.classList.add('hidden-game'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`game-${t}`).classList.remove('hidden-game');
+            event.target.classList.add('active');
+            document.getElementById('diff-selector').style.display = (t === 'shop' || t === 'luck') ? 'none' : 'block';
         }
 
-        /* --- MINI GAME ENGINE (연동 로직) --- */
-        let game = { active: false, score: 0, time: 30 };
-        let gameInterval, spawnTimer;
-
-        function startGame() {
-            if (game.active) return;
-            game.active = true;
-            game.score = 0;
-            game.time = 30;
-            document.getElementById('game-overlay').classList.add('hidden');
-            document.getElementById('score').innerText = '0';
-            
-            gameInterval = setInterval(() => {
-                game.time--;
-                document.getElementById('timer').innerText = game.time;
-                if (game.time <= 0) endGame();
+        /* --- GAME 1: MONSTER HUNT --- */
+        let huntActive = false;
+        function initHunt() {
+            const g = document.getElementById('hunt-grid');
+            g.innerHTML = '<div id="hunt-overlay" class="absolute inset-0 bg-black/90 z-20 flex items-center justify-center"><button onclick="startHunt()" class="pixel-btn !bg-neon-green !text-black">START HUNTING</button></div>';
+            for(let i=0; i<9; i++) g.innerHTML += `<div class="grid-hole"><div class="monster" id="m-${i}" onclick="hit(${i})">👾</div></div>`;
+        }
+        function startHunt() {
+            huntActive = true; document.getElementById('hunt-overlay').style.display = 'none';
+            let score = 0; let time = 20; document.getElementById('hunt-score').innerText = 0;
+            const timer = setInterval(() => {
+                time--; document.getElementById('hunt-time').innerText = time;
+                if(time <= 0) {
+                    clearInterval(timer); huntActive = false;
+                    document.getElementById('hunt-overlay').style.display = 'flex';
+                    const gold = Math.floor(score * 0.2 * state.diff);
+                    state.gold += gold;
+                    log(`HUNT OVER. SCORE: ${score}. GOLD: +${gold}`);
+                    gainExp(score);
+                }
             }, 1000);
-            
-            spawnLoop();
-            playSfx(400, 'square', 0.2);
+            spawn();
         }
-
-        function spawnLoop() {
-            if (!game.active) return;
-            
-            const monsters = document.querySelectorAll('.monster');
-            const target = monsters[Math.floor(Math.random() * monsters.length)];
-            
-            if (!target.classList.contains('up')) {
-                // LUK 수치에 따른 황금 몬스터 등장 확률 (기본 10% + 스탯당 5%)
-                const goldChance = 10 + (state.stats.luk * 5);
-                const isGold = (Math.random() * 100) < goldChance;
-                
-                target.innerHTML = isGold ? '✨' : '👾';
-                target.dataset.type = isGold ? 'gold' : 'norm';
-                target.classList.add('up');
-
-                // DEX 수치에 따른 몬스터 유지 시간 (기본 800ms + 스탯당 100ms 증가하여 잡기 쉬워짐)
-                const stayTime = 800 + (state.stats.dex * 100);
-                setTimeout(() => target.classList.remove('up'), stayTime);
+        function spawn() {
+            if(!huntActive) return;
+            const i = Math.floor(Math.random()*9);
+            const m = document.getElementById(`m-${i}`);
+            const rand = Math.random()*100;
+            let type = 'normal'; m.innerText = '👾';
+            if(rand < 10 + state.stats.luk) { type = 'gold'; m.innerText = '💎'; }
+            else if(rand < 25) { type = 'bomb'; m.innerText = '💣'; }
+            m.dataset.type = type;
+            m.classList.add('up');
+            const stay = Math.max(200, (1000 / state.diff) - (state.stats.dex * 30));
+            setTimeout(() => { m.classList.remove('up'); if(huntActive) spawn(); }, stay);
+        }
+        function hit(i) {
+            const m = document.getElementById(`m-${i}`);
+            if(!m.classList.contains('up')) return;
+            m.classList.remove('up');
+            document.body.classList.add('shake'); setTimeout(()=>document.body.classList.remove('shake'), 100);
+            const type = m.dataset.type;
+            if(type === 'bomb') {
+                gainExp(-10); sfx(100, 'sawtooth', 0.2);
+            } else {
+                const pts = (type === 'gold' ? 50 : 10) + state.stats.str;
+                document.getElementById('hunt-score').innerText = parseInt(document.getElementById('hunt-score').innerText) + pts;
+                sfx(type === 'gold' ? 1000 : 400, 'sine', 0.1);
             }
-
-            // INT 수치에 따른 다음 몬스터 출현 빈도 (기본 1000ms - 스탯당 80ms 단축)
-            const nextSpawn = Math.max(1000 - (state.stats.int * 80), 300);
-            spawnTimer = setTimeout(spawnLoop, nextSpawn);
         }
 
-        // 타격 처리
-        document.querySelectorAll('.monster').forEach(m => {
-            m.addEventListener('mousedown', () => {
-                if (!m.classList.contains('up')) return;
-                m.classList.remove('up');
-                
-                // Screen Shake
-                document.getElementById('master-wrapper').classList.add('shake-effect');
-                setTimeout(() => document.getElementById('master-wrapper').classList.remove('shake-effect'), 200);
+        /* --- GAME 2: MEMORY MASTER --- */
+        const emojis = ['🔥','🔮','⚔️','🛡️','💎','💀','🍀','⚡'];
+        let memCards = []; let flipped = [];
+        function startMemory() {
+            const g = document.getElementById('memory-grid'); g.innerHTML = '';
+            memCards = [...emojis, ...emojis].sort(()=>Math.random()-0.5);
+            memCards.forEach((e, i) => g.innerHTML += `<div class="memory-card" id="mc-${i}" onclick="flip(${i})">?</div>`);
+            document.getElementById('mem-btn').disabled = true;
+            const peekTime = Math.max(500, 1000 + (state.stats.int * 500) - (state.diff * 200));
+            log(`MEMORIZE FOR ${(peekTime/1000).toFixed(1)}s!`);
+            setTimeout(() => {
+                document.querySelectorAll('.memory-card').forEach((c, i) => c.innerText = memCards[i]);
+                setTimeout(() => {
+                    document.querySelectorAll('.memory-card').forEach(c => c.innerText = '?');
+                }, peekTime);
+            }, 500);
+        }
+        function flip(i) {
+            const c = document.getElementById(`mc-${i}`);
+            if(flipped.length < 2 && c.innerText === '?') {
+                c.innerText = memCards[i]; flipped.push({id:i, val:memCards[i]});
+                if(flipped.length === 2) setTimeout(checkMem, 400);
+            }
+        }
+        function checkMem() {
+            if(flipped[0].val === flipped[1].val) {
+                document.getElementById(`mc-${flipped[0].id}`).classList.add('matched');
+                document.getElementById(`mc-${flipped[1].id}`).classList.add('matched');
+                state.gold += Math.floor(10 * state.diff); gainExp(10);
+                if(document.querySelectorAll('.memory-card:not(.matched)').length === 0) {
+                    log("MEMORY CLEAR!"); gainExp(100);
+                    document.getElementById('mem-btn').disabled = false;
+                }
+            } else {
+                document.getElementById(`mc-${flipped[0].id}`).innerText = '?';
+                document.getElementById(`mc-${flipped[1].id}`).innerText = '?';
+            }
+            flipped = [];
+        }
 
-                // STR 수치에 따른 점수 및 골드 보너스 (기본 10/100 + 스탯당 10점 추가)
-                const baseScore = m.dataset.type === 'gold' ? 100 : 10;
-                const strBonus = state.stats.str * 10;
-                
-                game.score += (baseScore + strBonus);
-                document.getElementById('score').innerText = game.score;
-                playSfx(220, 'sawtooth', 0.1);
-            });
+        /* --- GAME 3: QUICK MATH --- */
+        let mathActive = false; let mathAns = 0; let mathScore = 0;
+        function startMath() {
+            mathActive = true; mathScore = 0; let time = 15;
+            document.getElementById('math-btn').disabled = true;
+            document.getElementById('math-input').disabled = false;
+            document.getElementById('math-input').focus();
+            const timer = setInterval(() => {
+                time--; document.getElementById('math-time').innerText = time;
+                if(time <= 0) {
+                    clearInterval(timer); mathActive = false;
+                    document.getElementById('math-btn').disabled = false;
+                    document.getElementById('math-input').disabled = true;
+                    log(`MATH OVER. SCORE: ${mathScore}`);
+                    gainExp(mathScore * 5);
+                }
+            }, 1000);
+            nextProblem();
+        }
+        function nextProblem() {
+            const a = Math.floor(Math.random() * (10 * state.diff));
+            const b = Math.floor(Math.random() * (10 * state.diff));
+            mathAns = a + b;
+            document.getElementById('math-problem').innerText = `${a} + ${b} = ?`;
+            document.getElementById('math-input').value = '';
+        }
+        document.getElementById('math-input').addEventListener('input', (e) => {
+            if(parseInt(e.target.value) === mathAns) {
+                mathScore += 10 + state.stats.int;
+                document.getElementById('math-score').innerText = mathScore;
+                sfx(1200, 'sine', 0.05);
+                nextProblem();
+            }
         });
 
-        function endGame() {
-            game.active = false;
-            clearInterval(gameInterval);
-            clearTimeout(spawnTimer);
-            document.getElementById('game-overlay').classList.remove('hidden');
-            
-            // 최종 골드 정산 (DEX/STR 가중치 포함)
-            const earnedGold = Math.floor(game.score / 10);
-            state.gold += earnedGold;
-            syncUI();
-            alert(`GAME OVER!\nSCORE: ${game.score}\nGOLD EARNED: ${earnedGold}G`);
+        /* --- SLOTS & SHOP --- */
+        function spin() {
+            if(state.gold < 100) return log("LACK OF GOLD!");
+            state.gold -= 100; updateUI();
+            const btn = document.getElementById('spin-btn'); btn.disabled = true;
+            const sym = ['💎','🍒','7️⃣','💀'];
+            let c = 0;
+            const t = setInterval(() => {
+                document.getElementById('sl-1').innerText = sym[Math.floor(Math.random()*4)];
+                document.getElementById('sl-2').innerText = sym[Math.floor(Math.random()*4)];
+                document.getElementById('sl-3').innerText = sym[Math.floor(Math.random()*4)];
+                if(++c > 15) {
+                    clearInterval(t); btn.disabled = false;
+                    const r = [document.getElementById('sl-1').innerText, document.getElementById('sl-2').innerText, document.getElementById('sl-3').innerText];
+                    if(r[0] === r[1] && r[1] === r[2]) {
+                        const win = (r[0] === '7️⃣' ? 2000 : 1000) + (state.stats.luk * 200);
+                        state.gold += win; gainExp(100); log(`JACKPOT! +${win}G`);
+                    } else { log("LOSE..."); }
+                    updateUI();
+                }
+            }, 100);
+        }
+        function buy(t, p) {
+            if(state.gold >= p) {
+                state.gold -= p; if(t==='exp') gainExp(200); if(t==='str') state.stats.str += 3;
+                log(`BOUGHT ${t.toUpperCase()}.`); updateUI();
+            } else log("LACK OF GOLD!");
         }
 
-        // 초기화
-        window.onload = syncUI;
+        window.onload = () => { initHunt(); updateUI(); };
     </script>
 </body>
 </html>
