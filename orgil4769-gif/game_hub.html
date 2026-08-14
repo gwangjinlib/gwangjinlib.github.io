@@ -15,6 +15,7 @@
     --neon-magenta:#ff4fa3;
     --neon-amber:#ffc857;
     --neon-green:#7cff6b;
+    --neon-purple:#c084fc;
     --ink:#f2f0e9;
     --ink-dim:#8a8599;
     --line:rgba(242,240,233,0.08);
@@ -45,7 +46,7 @@
   @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   /* ---------- HUB ---------- */
-  .hub-header{ text-align:center; margin-bottom:44px; }
+  .hub-header{ text-align:center; margin-bottom:32px; }
   .marquee{
     display:inline-block; padding:22px 46px; border:2px solid var(--line);
     border-radius:6px; background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
@@ -66,9 +67,25 @@
   }
   .hub-sub{ margin:0; color:var(--ink-dim); font-size:13px; letter-spacing:1px; }
 
+  .category-tabs{
+    display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:26px 0 30px;
+  }
+  .cat-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:.5px;
+    background:var(--bg-panel-2); color:var(--ink-dim); border:1px solid var(--line);
+    border-radius:20px; padding:9px 18px; cursor:pointer; transition:.15s;
+  }
+  .cat-btn:hover{ color:var(--ink); border-color:var(--neon-cyan); }
+  .cat-btn.active{ color:#0a0a12; background:var(--neon-cyan); border-color:var(--neon-cyan); font-weight:700; }
+
+  .category-section{ max-width:920px; margin:0 auto 38px; }
+  .category-label{
+    font-family:'Press Start 2P', monospace; font-size:11px; letter-spacing:1px;
+    color:var(--ink-dim); margin:0 0 16px 4px;
+  }
   .cabinet-grid{
     display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr));
-    gap:22px; max-width:920px; margin:0 auto;
+    gap:22px;
   }
   .cabinet{
     position:relative; cursor:pointer; text-align:left;
@@ -99,9 +116,13 @@
     letter-spacing:1px; margin-bottom:10px; color:var(--ink);
   }
   .cabinet-desc{ display:block; font-size:12.5px; color:var(--ink-dim); }
+  .cabinet-tag{
+    display:inline-block; margin-top:10px; font-size:10px; letter-spacing:.5px;
+    color:var(--accent); border:1px solid var(--accent); border-radius:10px; padding:2px 8px;
+  }
 
   .hub-footer{
-    text-align:center; margin-top:46px; color:var(--ink-dim); font-size:11.5px; letter-spacing:.5px;
+    text-align:center; margin-top:16px; color:var(--ink-dim); font-size:11.5px; letter-spacing:.5px;
   }
 
   /* ---------- GAME SCREENS ---------- */
@@ -131,7 +152,7 @@
     background:var(--bg-panel); border:1px solid var(--line); border-radius:10px;
     padding:18px; box-shadow:0 0 30px rgba(0,0,0,0.4);
   }
-  canvas{ display:block; border-radius:6px; background:#0c0a16; touch-action:none; }
+  canvas{ display:block; border-radius:6px; background:#0c0a16; touch-action:none; outline:none; }
   .hint{ color:var(--ink-dim); font-size:12px; text-align:center; }
   .overlay-msg{
     display:none; text-align:center; font-family:'Press Start 2P', monospace;
@@ -144,8 +165,11 @@
     border-radius:6px; padding:10px 18px; cursor:pointer; transition:.15s;
   }
   .btn:hover{ border-color:var(--neon-magenta); color:var(--neon-magenta); }
+  .btn.toggle-on{ border-color:var(--neon-green); color:var(--neon-green); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .btn-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
-  /* touch dpad for snake/breakout on mobile */
+  /* touch dpad for snake on mobile */
   .dpad{ display:none; grid-template-columns:repeat(3,52px); grid-template-rows:repeat(3,52px); gap:6px; }
   .dpad button{
     background:var(--bg-panel-2); border:1px solid var(--line); color:var(--ink);
@@ -157,28 +181,37 @@
   .dpad .right{ grid-column:3; grid-row:2; }
   .dpad .down{ grid-column:2; grid-row:3; }
 
+  /* touch a/d pad for breakout on mobile */
+  .adpad{ display:none; gap:14px; }
+  @media (hover:none){ .adpad{ display:flex; } }
+  .adpad button{
+    background:var(--bg-panel-2); border:1px solid var(--line); color:var(--ink);
+    border-radius:8px; font-size:18px; cursor:pointer; width:64px; height:48px;
+  }
+
   /* 2048 */
   #grid2048{
     display:grid; grid-template-columns:repeat(4,72px); grid-template-rows:repeat(4,72px);
     gap:10px; background:#0c0a16; padding:10px; border-radius:8px;
+    outline:none;
   }
   .tile{
     display:flex; align-items:center; justify-content:center;
     border-radius:6px; font-weight:700; font-size:22px; color:#1a1420;
-    background:#241d38; transition:background .15s;
+    background:#241d38; transition:background .12s;
   }
-  .tile[data-v="0"]{ background:#1c1730; }
-  .tile[data-v="2"]{ background:#e9e6f5; }
-  .tile[data-v="4"]{ background:#d9d3ee; }
-  .tile[data-v="8"]{ background:var(--neon-amber); }
-  .tile[data-v="16"]{ background:#ff9d4d; color:#1a1420; }
-  .tile[data-v="32"]{ background:var(--neon-magenta); color:#fff; }
-  .tile[data-v="64"]{ background:#ff2f7a; color:#fff; }
-  .tile[data-v="128"]{ background:var(--neon-cyan); color:#1a1420; }
-  .tile[data-v="256"]{ background:#2fd8c4; color:#1a1420; }
-  .tile[data-v="512"]{ background:var(--neon-green); color:#1a1420; }
-  .tile[data-v="1024"]{ background:#ffe066; color:#1a1420; }
-  .tile[data-v="2048"]{ background:#fff; color:#1a1420; box-shadow:0 0 20px #fff; }
+  .tile.empty{ background:#1c1730; }
+  .tile.v2{ background:#e9e6f5; }
+  .tile.v4{ background:#d9d3ee; }
+  .tile.v8{ background:var(--neon-amber); }
+  .tile.v16{ background:#ff9d4d; color:#1a1420; }
+  .tile.v32{ background:var(--neon-magenta); color:#fff; }
+  .tile.v64{ background:#ff2f7a; color:#fff; }
+  .tile.v128{ background:var(--neon-cyan); color:#1a1420; }
+  .tile.v256{ background:#2fd8c4; color:#1a1420; }
+  .tile.v512{ background:var(--neon-green); color:#1a1420; }
+  .tile.v1024{ background:#ffe066; color:#1a1420; }
+  .tile.v2048{ background:#fff; color:#1a1420; box-shadow:0 0 20px #fff; }
 
   /* memory */
   #gridMemory{
@@ -192,6 +225,27 @@
   }
   .card.flipped{ background:#241d38; transform:scale(1.03); }
   .card.matched{ background:transparent; border-color:var(--neon-green); color:var(--neon-green); cursor:default; }
+
+  /* chat-style panels for word chain / call my name */
+  .chat-log{
+    width:100%; max-width:520px; height:300px; overflow-y:auto;
+    background:#0c0a16; border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:8px;
+  }
+  .msg{ max-width:80%; padding:9px 13px; border-radius:10px; font-size:13px; line-height:1.4; }
+  .msg.ai{ align-self:flex-start; background:var(--bg-panel-2); color:var(--ink); border:1px solid var(--line); }
+  .msg.player{ align-self:flex-end; background:var(--neon-cyan); color:#0a0a12; font-weight:600; }
+  .msg.system{ align-self:center; color:var(--ink-dim); font-size:11.5px; background:none; }
+  .input-row{ display:flex; gap:8px; width:100%; max-width:520px; }
+  .input-row input{
+    flex:1; font-family:'IBM Plex Mono', monospace; font-size:14px;
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:6px;
+    padding:10px 12px; color:var(--ink); outline:none;
+  }
+  .input-row input:focus{ border-color:var(--neon-cyan); }
+  .tag-chip{
+    display:inline-block; background:var(--bg-panel-2); border:1px solid var(--neon-purple);
+    color:var(--neon-purple); border-radius:12px; padding:4px 12px; font-size:12px; margin:2px;
+  }
 
   footer.credit{ text-align:center; color:var(--ink-dim); font-size:10.5px; margin-top:40px; letter-spacing:.5px; }
 </style>
@@ -210,31 +264,67 @@
     </div>
   </div>
 
-  <div class="cabinet-grid">
-    <button class="cabinet" data-game="snake" style="--accent:#4ce0d2">
-      <span class="cabinet-glow"></span>
-      <span class="cabinet-icon">▲</span>
-      <span class="cabinet-name">SNAKE</span>
-      <span class="cabinet-desc">먹고 자라는 클래식 게임</span>
-    </button>
-    <button class="cabinet" data-game="g2048" style="--accent:#ffc857">
-      <span class="cabinet-glow"></span>
-      <span class="cabinet-icon">◆</span>
-      <span class="cabinet-name">2048</span>
-      <span class="cabinet-desc">숫자 타일을 합쳐보세요</span>
-    </button>
-    <button class="cabinet" data-game="memory" style="--accent:#ff4fa3">
-      <span class="cabinet-glow"></span>
-      <span class="cabinet-icon">●</span>
-      <span class="cabinet-name">MEMORY</span>
-      <span class="cabinet-desc">같은 카드 짝을 맞춰요</span>
-    </button>
-    <button class="cabinet" data-game="breakout" style="--accent:#7cff6b">
-      <span class="cabinet-glow"></span>
-      <span class="cabinet-icon">■</span>
-      <span class="cabinet-name">BREAKOUT</span>
-      <span class="cabinet-desc">공을 튕겨 벽돌을 부숴요</span>
-    </button>
+  <div class="category-tabs">
+    <button class="cat-btn active" data-cat="all">전체</button>
+    <button class="cat-btn" data-cat="arcade">아케이드</button>
+    <button class="cat-btn" data-cat="puzzle">퍼즐</button>
+    <button class="cat-btn" data-cat="party">미니게임 (AI)</button>
+  </div>
+
+  <div class="category-section" data-section="arcade">
+    <p class="category-label">// ARCADE</p>
+    <div class="cabinet-grid">
+      <button class="cabinet" data-game="snake" data-cat="arcade" style="--accent:#4ce0d2">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">▲</span>
+        <span class="cabinet-name">SNAKE</span>
+        <span class="cabinet-desc">촘촘한 맵 + 자율주행 모드</span>
+      </button>
+      <button class="cabinet" data-game="breakout" data-cat="arcade" style="--accent:#7cff6b">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">■</span>
+        <span class="cabinet-name">BREAKOUT</span>
+        <span class="cabinet-desc">맞출 때마다 공이 늘어나요</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="category-section" data-section="puzzle">
+    <p class="category-label">// PUZZLE</p>
+    <div class="cabinet-grid">
+      <button class="cabinet" data-game="g2048" data-cat="puzzle" style="--accent:#ffc857">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">◆</span>
+        <span class="cabinet-name">2048</span>
+        <span class="cabinet-desc">숫자 타일을 합쳐보세요</span>
+      </button>
+      <button class="cabinet" data-game="memory" data-cat="puzzle" style="--accent:#ff4fa3">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">●</span>
+        <span class="cabinet-name">MEMORY</span>
+        <span class="cabinet-desc">미리보기 후 짝을 맞춰요</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="category-section" data-section="party">
+    <p class="category-label">// MINI GAME (AI 대전)</p>
+    <div class="cabinet-grid">
+      <button class="cabinet" data-game="wordchain" data-cat="party" style="--accent:#c084fc">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">가</span>
+        <span class="cabinet-name">끝말잇기</span>
+        <span class="cabinet-desc">AI를 상대로 단어를 이어보세요</span>
+        <span class="cabinet-tag">AI 대전</span>
+      </button>
+      <button class="cabinet" data-game="callname" data-cat="party" style="--accent:#ffc857">
+        <span class="cabinet-glow"></span>
+        <span class="cabinet-icon">?</span>
+        <span class="cabinet-name">양세찬 게임</span>
+        <span class="cabinet-desc">스무고개로 AI가 낸 인물을 맞혀요</span>
+        <span class="cabinet-tag">AI 대전</span>
+      </button>
+    </div>
   </div>
 
   <div class="hub-footer">화살표 키 · 마우스 클릭 · 터치로 플레이하세요</div>
@@ -249,11 +339,14 @@
   </div>
   <div class="game-stage">
     <div class="panel">
-      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+      <canvas id="snakeCanvas" width="400" height="400" tabindex="0"></canvas>
     </div>
     <div class="overlay-msg" id="snakeOver">GAME OVER</div>
-    <button class="btn" id="snakeRestart">다시 시작</button>
-    <div class="hint">방향키 / WASD 로 이동</div>
+    <div class="btn-row">
+      <button class="btn" id="snakeRestart">다시 시작</button>
+      <button class="btn" id="snakeAuto">AUTO: OFF</button>
+    </div>
+    <div class="hint">방향키 / WASD 로 이동 · AUTO 버튼으로 자율주행 켜기</div>
     <div class="dpad" id="snakeDpad">
       <button class="up">▲</button><div></div><div></div>
       <button class="left">◀</button><div></div><button class="right">▶</button>
@@ -270,10 +363,10 @@
     <div class="game-score">점수 <b id="score2048">0</b></div>
   </div>
   <div class="game-stage">
-    <div class="panel"><div id="grid2048"></div></div>
+    <div class="panel"><div id="grid2048" tabindex="0"></div></div>
     <div class="overlay-msg" id="over2048">GAME OVER</div>
     <button class="btn" id="restart2048">다시 시작</button>
-    <div class="hint">방향키로 타일을 밀어 합치세요 (모바일: 스와이프)</div>
+    <div class="hint">방향키로 타일을 밀어 합치세요 (모바일: 스와이프) · 보드를 한 번 클릭하면 키 입력이 더 잘 잡혀요</div>
   </div>
 </div>
 
@@ -288,7 +381,7 @@
     <div class="panel"><div id="gridMemory"></div></div>
     <div class="overlay-msg" id="overMemory">CLEAR!</div>
     <button class="btn" id="restartMemory">다시 시작</button>
-    <div class="hint">카드를 클릭해 같은 그림 두 장을 맞추세요</div>
+    <div class="hint" id="memoryHint">카드를 잘 봐두세요! 곧 뒤집힙니다...</div>
   </div>
 </div>
 
@@ -297,15 +390,70 @@
   <div class="game-header">
     <button class="back-btn" data-back>← 허브로</button>
     <h2 class="game-title" style="color:#7cff6b">BREAKOUT</h2>
-    <div class="game-score">점수 <b id="scoreBreakout">0</b> · 목숨 <b id="livesBreakout">3</b></div>
+    <div class="game-score">점수 <b id="scoreBreakout">0</b> · 목숨 <b id="livesBreakout">3</b> · 공 <b id="ballsBreakout">1</b></div>
   </div>
   <div class="game-stage">
     <div class="panel">
-      <canvas id="breakoutCanvas" width="480" height="320"></canvas>
+      <canvas id="breakoutCanvas" width="480" height="320" tabindex="0"></canvas>
     </div>
     <div class="overlay-msg" id="overBreakout">GAME OVER</div>
     <button class="btn" id="restartBreakout">다시 시작</button>
-    <div class="hint">← → 키 또는 마우스/터치로 패들 이동</div>
+    <div class="hint">A / D 키로 패들 이동 (마우스·터치도 가능) · 패들에 맞을 때마다 공이 늘고 빨라져요</div>
+    <div class="adpad" id="breakoutAdpad">
+      <button data-dir="-1">◀ A</button>
+      <button data-dir="1">D ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ WORD CHAIN (끝말잇기) ============ -->
+<div id="screen-wordchain" class="screen">
+  <div class="game-header">
+    <button class="back-btn" data-back>← 허브로</button>
+    <h2 class="game-title" style="color:#c084fc">끝말잇기</h2>
+    <div class="game-score">주고받은 단어 <b id="wcCount">0</b></div>
+  </div>
+  <div class="game-stage">
+    <div class="panel" style="width:100%">
+      <div class="chat-log" id="wcLog"></div>
+    </div>
+    <div class="overlay-msg" id="wcOver">GAME OVER</div>
+    <div class="input-row">
+      <input id="wcInput" type="text" placeholder="다음 글자로 시작하는 단어를 입력하세요" autocomplete="off">
+      <button class="btn" id="wcSubmit">제출</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="wcRestart">다시 시작</button>
+    </div>
+    <div class="hint" id="wcHint">AI가 먼저 단어를 냅니다. 마지막 글자로 시작하는 단어를 입력하세요 (두음법칙 허용)</div>
+  </div>
+</div>
+
+<!-- ============ CALL MY NAME (양세찬 게임) ============ -->
+<div id="screen-callname" class="screen">
+  <div class="game-header">
+    <button class="back-btn" data-back>← 허브로</button>
+    <h2 class="game-title" style="color:#ffc857">양세찬 게임</h2>
+    <div class="game-score">질문 <b id="cnCount">0</b>/20</div>
+  </div>
+  <div class="game-stage">
+    <div class="panel" style="width:100%">
+      <div class="chat-log" id="cnLog"></div>
+    </div>
+    <div class="overlay-msg" id="cnOver">GAME OVER</div>
+    <div class="input-row">
+      <input id="cnInput" type="text" placeholder="예/아니오로 답할 질문을 입력 (예: 남자인가요?)" autocomplete="off">
+      <button class="btn" id="cnSubmit">질문</button>
+    </div>
+    <div class="input-row">
+      <input id="cnGuessInput" type="text" placeholder="정답이라고 생각하면 이름을 입력하세요" autocomplete="off">
+      <button class="btn" id="cnGuessSubmit">정답 제출</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="cnHintBtn">힌트 보기</button>
+      <button class="btn" id="cnRestart">다시 시작</button>
+    </div>
+    <div class="hint" id="cnHint">AI가 인물을 하나 정했어요. 예/아니오로 답할 수 있는 질문을 던져서 정체를 추리하세요 (최대 20번)</div>
   </div>
 </div>
 
@@ -314,12 +462,15 @@
 <script>
 /* ============ NAVIGATION ============ */
 function showScreen(id){
+  stopAllLoops();
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
   if(id==='snake') initSnake();
   if(id==='g2048') init2048();
   if(id==='memory') initMemory();
   if(id==='breakout') initBreakout();
+  if(id==='wordchain') initWordChain();
+  if(id==='callname') initCallName();
 }
 document.querySelectorAll('.cabinet').forEach(btn=>{
   btn.addEventListener('click', ()=> showScreen(btn.dataset.game));
@@ -331,31 +482,84 @@ document.querySelectorAll('[data-back]').forEach(btn=>{
   });
 });
 function stopAllLoops(){
-  if(snakeLoop) clearInterval(snakeLoop);
-  if(breakoutLoop) cancelAnimationFrame(breakoutLoop);
+  if(typeof snakeLoop!=='undefined' && snakeLoop) clearInterval(snakeLoop);
+  if(typeof breakoutLoop!=='undefined' && breakoutLoop) cancelAnimationFrame(breakoutLoop);
 }
 
+/* ============ CATEGORY FILTER ============ */
+document.querySelectorAll('.cat-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const cat=btn.dataset.cat;
+    document.querySelectorAll('.category-section').forEach(sec=>{
+      sec.style.display = (cat==='all' || sec.dataset.section===cat) ? '' : 'none';
+    });
+  });
+});
+
 /* ============ SNAKE ============ */
-let snakeCtx, snakeLoop, snake, snakeDir, snakeNextDir, snakeFood, snakeScore, snakeCell=20, snakeCols=20;
+let snakeCtx, snakeLoop, snake, snakeDir, snakeNextDir, snakeFoods, snakeScore;
+let snakeCols=25, snakeCell=16, snakeFoodCount=3, snakeAuto=false;
 function initSnake(){
   const canvas=document.getElementById('snakeCanvas');
   snakeCtx=canvas.getContext('2d');
-  snake=[{x:9,y:10},{x:8,y:10},{x:7,y:10}];
+  snake=[{x:12,y:12},{x:11,y:12},{x:10,y:12}];
   snakeDir={x:1,y:0}; snakeNextDir={x:1,y:0};
   snakeScore=0;
+  snakeAuto=false;
+  document.getElementById('snakeAuto').textContent='AUTO: OFF';
+  document.getElementById('snakeAuto').classList.remove('toggle-on');
   document.getElementById('snakeScore').textContent='0';
   document.getElementById('snakeOver').classList.remove('show');
-  placeSnakeFood();
+  snakeFoods=[];
+  while(snakeFoods.length<snakeFoodCount) placeSnakeFood();
   if(snakeLoop) clearInterval(snakeLoop);
-  snakeLoop=setInterval(snakeStep,110);
+  snakeLoop=setInterval(snakeStep,100);
   drawSnake();
+  canvas.focus();
 }
 function placeSnakeFood(){
+  let pos, tries=0;
   do{
-    snakeFood={x:Math.floor(Math.random()*snakeCols), y:Math.floor(Math.random()*snakeCols)};
-  }while(snake.some(s=>s.x===snakeFood.x && s.y===snakeFood.y));
+    pos={x:Math.floor(Math.random()*snakeCols), y:Math.floor(Math.random()*snakeCols)};
+    tries++;
+  }while(tries<200 && (snake.some(s=>s.x===pos.x&&s.y===pos.y) || snakeFoods.some(f=>f.x===pos.x&&f.y===pos.y)));
+  snakeFoods.push(pos);
+}
+function nearestFood(head){
+  let best=null, bestDist=Infinity;
+  snakeFoods.forEach(f=>{
+    const d=Math.abs(f.x-head.x)+Math.abs(f.y-head.y);
+    if(d<bestDist){ bestDist=d; best=f; }
+  });
+  return best;
+}
+function isSafeCell(x,y){
+  if(x<0||y<0||x>=snakeCols||y>=snakeCols) return false;
+  for(let i=0;i<snake.length-1;i++){
+    if(snake[i].x===x && snake[i].y===y) return false;
+  }
+  return true;
+}
+function autoChooseDirection(){
+  const head=snake[0];
+  const food=nearestFood(head);
+  const candidates=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d=>!(d.x===-snakeDir.x && d.y===-snakeDir.y));
+  const safe=candidates.filter(d=>isSafeCell(head.x+d.x, head.y+d.y));
+  const finalPool = safe.length ? safe : candidates;
+  if(!food) return finalPool[0] || snakeDir;
+  finalPool.sort((a,b)=>{
+    const da=Math.abs((head.x+a.x)-food.x)+Math.abs((head.y+a.y)-food.y);
+    const db=Math.abs((head.x+b.x)-food.x)+Math.abs((head.y+b.y)-food.y);
+    return da-db;
+  });
+  return finalPool[0] || snakeDir;
 }
 function snakeStep(){
+  if(snakeAuto){
+    snakeNextDir=autoChooseDirection();
+  }
   snakeDir=snakeNextDir;
   const head={x:snake[0].x+snakeDir.x, y:snake[0].y+snakeDir.y};
   if(head.x<0||head.y<0||head.x>=snakeCols||head.y>=snakeCols||snake.some(s=>s.x===head.x&&s.y===head.y)){
@@ -364,8 +568,10 @@ function snakeStep(){
     return;
   }
   snake.unshift(head);
-  if(head.x===snakeFood.x && head.y===snakeFood.y){
+  const eatenIdx=snakeFoods.findIndex(f=>f.x===head.x&&f.y===head.y);
+  if(eatenIdx!==-1){
     snakeScore++; document.getElementById('snakeScore').textContent=snakeScore;
+    snakeFoods.splice(eatenIdx,1);
     placeSnakeFood();
   } else {
     snake.pop();
@@ -376,8 +582,10 @@ function drawSnake(){
   snakeCtx.fillStyle='#0c0a16';
   snakeCtx.fillRect(0,0,400,400);
   snakeCtx.fillStyle='#ff4fa3';
-  snakeCtx.shadowColor='#ff4fa3'; snakeCtx.shadowBlur=10;
-  snakeCtx.fillRect(snakeFood.x*snakeCell+2, snakeFood.y*snakeCell+2, snakeCell-4, snakeCell-4);
+  snakeCtx.shadowColor='#ff4fa3'; snakeCtx.shadowBlur=8;
+  snakeFoods.forEach(f=>{
+    snakeCtx.fillRect(f.x*snakeCell+2, f.y*snakeCell+2, snakeCell-4, snakeCell-4);
+  });
   snakeCtx.shadowBlur=0;
   snake.forEach((s,i)=>{
     snakeCtx.fillStyle = i===0 ? '#4ce0d2' : '#2fa89c';
@@ -388,52 +596,79 @@ window.addEventListener('keydown', e=>{
   const active=document.getElementById('screen-snake').classList.contains('active');
   if(!active) return;
   const k=e.key.toLowerCase();
+  const dirKeys=['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'];
+  if(dirKeys.includes(k)){
+    if(snakeAuto){ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; document.getElementById('snakeAuto').classList.remove('toggle-on'); }
+  }
   if((k==='arrowup'||k==='w') && snakeDir.y!==1) snakeNextDir={x:0,y:-1};
   else if((k==='arrowdown'||k==='s') && snakeDir.y!==-1) snakeNextDir={x:0,y:1};
   else if((k==='arrowleft'||k==='a') && snakeDir.x!==1) snakeNextDir={x:-1,y:0};
   else if((k==='arrowright'||k==='d') && snakeDir.x!==-1) snakeNextDir={x:1,y:0};
 });
 document.getElementById('snakeRestart').addEventListener('click', initSnake);
+document.getElementById('snakeAuto').addEventListener('click', function(){
+  snakeAuto=!snakeAuto;
+  this.textContent = snakeAuto ? 'AUTO: ON' : 'AUTO: OFF';
+  this.classList.toggle('toggle-on', snakeAuto);
+});
 const sd=document.getElementById('snakeDpad');
-sd.querySelector('.up').onclick=()=>{ if(snakeDir.y!==1) snakeNextDir={x:0,y:-1}; };
-sd.querySelector('.down').onclick=()=>{ if(snakeDir.y!==-1) snakeNextDir={x:0,y:1}; };
-sd.querySelector('.left').onclick=()=>{ if(snakeDir.x!==1) snakeNextDir={x:-1,y:0}; };
-sd.querySelector('.right').onclick=()=>{ if(snakeDir.x!==-1) snakeNextDir={x:1,y:0}; };
+sd.querySelector('.up').onclick=()=>{ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; if(snakeDir.y!==1) snakeNextDir={x:0,y:-1}; };
+sd.querySelector('.down').onclick=()=>{ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; if(snakeDir.y!==-1) snakeNextDir={x:0,y:1}; };
+sd.querySelector('.left').onclick=()=>{ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; if(snakeDir.x!==1) snakeNextDir={x:-1,y:0}; };
+sd.querySelector('.right').onclick=()=>{ snakeAuto=false; document.getElementById('snakeAuto').textContent='AUTO: OFF'; if(snakeDir.x!==-1) snakeNextDir={x:1,y:0}; };
 
 /* ============ 2048 ============ */
 let board2048, score2048=0;
+const VNAMES=['empty','v2','v4','v8','v16','v32','v64','v128','v256','v512','v1024','v2048'];
+function valueClass(v){
+  if(v===0) return 'empty';
+  const idx=Math.log2(v);
+  return VNAMES[idx] || 'v2048';
+}
+function newBoard2048(){
+  return [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]];
+}
 function init2048(){
-  board2048=Array.from({length:4},()=>Array(4).fill(0));
+  board2048=newBoard2048();
   score2048=0;
   document.getElementById('score2048').textContent='0';
   document.getElementById('over2048').classList.remove('show');
   addTile2048(); addTile2048();
   render2048();
+  document.getElementById('grid2048').focus();
 }
 function addTile2048(){
   const empties=[];
-  for(let r=0;r<4;r++) for(let c=0;c<4;c++) if(board2048[r][c]===0) empties.push([r,c]);
-  if(empties.length===0) return;
-  const [r,c]=empties[Math.floor(Math.random()*empties.length)];
-  board2048[r][c]=Math.random()<0.9?2:4;
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      if(board2048[r][c]===0) empties.push([r,c]);
+    }
+  }
+  if(empties.length===0) return false;
+  const pick=empties[Math.floor(Math.random()*empties.length)];
+  board2048[pick[0]][pick[1]] = Math.random()<0.9 ? 2 : 4;
+  return true;
 }
 function render2048(){
   const grid=document.getElementById('grid2048');
   grid.innerHTML='';
-  for(let r=0;r<4;r++) for(let c=0;c<4;c++){
-    const v=board2048[r][c];
-    const div=document.createElement('div');
-    div.className='tile'; div.dataset.v=v;
-    div.textContent = v===0?'':v;
-    grid.appendChild(div);
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      const v=board2048[r][c];
+      const div=document.createElement('div');
+      div.className='tile '+valueClass(v);
+      div.textContent = v===0 ? '' : String(v);
+      grid.appendChild(div);
+    }
   }
-  document.getElementById('score2048').textContent=score2048;
+  document.getElementById('score2048').textContent=String(score2048);
 }
-function slide2048(row){
-  const arr=row.filter(v=>v!==0);
+function slideLine2048(line){
+  const arr=line.filter(function(v){ return v!==0; });
   for(let i=0;i<arr.length-1;i++){
     if(arr[i]===arr[i+1]){
-      arr[i]*=2; score2048+=arr[i];
+      arr[i]=arr[i]*2;
+      score2048+=arr[i];
       arr.splice(i+1,1);
     }
   }
@@ -441,26 +676,31 @@ function slide2048(row){
   return arr;
 }
 function move2048(dir){
-  let moved=false;
   const before=JSON.stringify(board2048);
+  const newBoard=newBoard2048();
   if(dir==='left'){
-    for(let r=0;r<4;r++) board2048[r]=slide2048(board2048[r]);
+    for(let r=0;r<4;r++){
+      newBoard[r]=slideLine2048(board2048[r].slice());
+    }
   } else if(dir==='right'){
-    for(let r=0;r<4;r++) board2048[r]=slide2048(board2048[r].slice().reverse()).reverse();
+    for(let r=0;r<4;r++){
+      newBoard[r]=slideLine2048(board2048[r].slice().reverse()).reverse();
+    }
   } else if(dir==='up'){
     for(let c=0;c<4;c++){
-      let col=[0,1,2,3].map(r=>board2048[r][c]);
-      col=slide2048(col);
-      for(let r=0;r<4;r++) board2048[r][c]=col[r];
+      const col=[board2048[0][c],board2048[1][c],board2048[2][c],board2048[3][c]];
+      const res=slideLine2048(col);
+      for(let r=0;r<4;r++) newBoard[r][c]=res[r];
     }
   } else if(dir==='down'){
     for(let c=0;c<4;c++){
-      let col=[0,1,2,3].map(r=>board2048[r][c]).reverse();
-      col=slide2048(col).reverse();
-      for(let r=0;r<4;r++) board2048[r][c]=col[r];
+      const col=[board2048[3][c],board2048[2][c],board2048[1][c],board2048[0][c]];
+      const res=slideLine2048(col);
+      for(let r=0;r<4;r++) newBoard[3-r][c]=res[r];
     }
   }
-  moved = before!==JSON.stringify(board2048);
+  board2048=newBoard;
+  const moved = before!==JSON.stringify(board2048);
   if(moved){
     addTile2048();
     render2048();
@@ -468,16 +708,19 @@ function move2048(dir){
       document.getElementById('over2048').classList.add('show');
     }
   }
+  return moved;
 }
 function isGameOver2048(){
-  for(let r=0;r<4;r++) for(let c=0;c<4;c++){
-    if(board2048[r][c]===0) return false;
-    if(c<3 && board2048[r][c]===board2048[r][c+1]) return false;
-    if(r<3 && board2048[r][c]===board2048[r+1][c]) return false;
+  for(let r=0;r<4;r++){
+    for(let c=0;c<4;c++){
+      if(board2048[r][c]===0) return false;
+      if(c<3 && board2048[r][c]===board2048[r][c+1]) return false;
+      if(r<3 && board2048[r][c]===board2048[r+1][c]) return false;
+    }
   }
   return true;
 }
-window.addEventListener('keydown', e=>{
+function handle2048Key(e){
   const active=document.getElementById('screen-g2048').classList.contains('active');
   if(!active) return;
   const k=e.key.toLowerCase();
@@ -485,13 +728,19 @@ window.addEventListener('keydown', e=>{
   else if(k==='arrowright'){ e.preventDefault(); move2048('right'); }
   else if(k==='arrowup'){ e.preventDefault(); move2048('up'); }
   else if(k==='arrowdown'){ e.preventDefault(); move2048('down'); }
-});
+}
+window.addEventListener('keydown', handle2048Key);
+document.getElementById('grid2048').addEventListener('keydown', handle2048Key);
 (function(){
-  let sx=0, sy=0;
+  let sx=0, sy=0, tracking=false;
   const grid=document.getElementById('grid2048');
-  grid.addEventListener('touchstart', e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; });
-  grid.addEventListener('touchend', e=>{
+  grid.addEventListener('click', function(){ grid.focus(); });
+  grid.addEventListener('touchstart', function(e){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true; }, {passive:true});
+  grid.addEventListener('touchend', function(e){
+    if(!tracking) return;
+    tracking=false;
     const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)<20 && Math.abs(dy)<20) return;
     if(Math.abs(dx)>Math.abs(dy)){
       move2048(dx>0?'right':'left');
     } else {
@@ -505,25 +754,32 @@ document.getElementById('restart2048').addEventListener('click', init2048);
 let memoryCards, memoryFlipped, memoryMoves, memoryLock;
 const MEMORY_SYMBOLS=['🚀','🎮','👾','⭐','🔥','💎','🎧','🍀'];
 function initMemory(){
-  const symbols=[...MEMORY_SYMBOLS, ...MEMORY_SYMBOLS];
+  const symbols=MEMORY_SYMBOLS.concat(MEMORY_SYMBOLS);
   for(let i=symbols.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
-    [symbols[i],symbols[j]]=[symbols[j],symbols[i]];
+    const tmp=symbols[i]; symbols[i]=symbols[j]; symbols[j]=tmp;
   }
-  memoryCards=symbols.map((s,i)=>({id:i, symbol:s, flipped:false, matched:false}));
-  memoryFlipped=[]; memoryMoves=0; memoryLock=false;
+  memoryCards=symbols.map(function(s,i){ return {id:i, symbol:s, flipped:true, matched:false}; });
+  memoryFlipped=[]; memoryMoves=0; memoryLock=true;
   document.getElementById('movesMemory').textContent='0';
   document.getElementById('overMemory').classList.remove('show');
+  document.getElementById('memoryHint').textContent='카드를 잘 봐두세요! 곧 뒤집힙니다...';
   renderMemory();
+  setTimeout(function(){
+    memoryCards.forEach(function(c){ if(!c.matched) c.flipped=false; });
+    memoryLock=false;
+    document.getElementById('memoryHint').textContent='카드를 클릭해 같은 그림 두 장을 맞추세요';
+    renderMemory();
+  }, 2200);
 }
 function renderMemory(){
   const grid=document.getElementById('gridMemory');
   grid.innerHTML='';
-  memoryCards.forEach(card=>{
+  memoryCards.forEach(function(card){
     const div=document.createElement('div');
     div.className='card'+(card.flipped||card.matched?' flipped':'')+(card.matched?' matched':'');
     div.textContent = (card.flipped||card.matched) ? card.symbol : '';
-    div.addEventListener('click', ()=>flipMemory(card.id));
+    div.addEventListener('click', function(){ flipMemory(card.id); });
     grid.appendChild(div);
   });
 }
@@ -535,18 +791,18 @@ function flipMemory(id){
   memoryFlipped.push(card);
   renderMemory();
   if(memoryFlipped.length===2){
-    memoryMoves++; document.getElementById('movesMemory').textContent=memoryMoves;
+    memoryMoves++; document.getElementById('movesMemory').textContent=String(memoryMoves);
     memoryLock=true;
-    const [a,b]=memoryFlipped;
+    const a=memoryFlipped[0], b=memoryFlipped[1];
     if(a.symbol===b.symbol){
       a.matched=true; b.matched=true;
       memoryFlipped=[]; memoryLock=false;
       renderMemory();
-      if(memoryCards.every(c=>c.matched)){
+      if(memoryCards.every(function(c){ return c.matched; })){
         document.getElementById('overMemory').classList.add('show');
       }
     } else {
-      setTimeout(()=>{
+      setTimeout(function(){
         a.flipped=false; b.flipped=false;
         memoryFlipped=[]; memoryLock=false;
         renderMemory();
@@ -557,15 +813,17 @@ function flipMemory(id){
 document.getElementById('restartMemory').addEventListener('click', initMemory);
 
 /* ============ BREAKOUT ============ */
-let bCtx, breakoutLoop, paddle, ball, bricks, scoreBreakout, livesBreakout, bWidth=480, bHeight=320;
+let bCtx, breakoutLoop, paddle, balls, bricks, scoreBreakout, livesBreakout, bWidth=480, bHeight=320;
+const BASE_SPEED=3.2, SPEED_GROWTH=1.06, MAX_SPEED=9, MAX_BALLS=5;
 function initBreakout(){
   const canvas=document.getElementById('breakoutCanvas');
   bCtx=canvas.getContext('2d');
   paddle={x:bWidth/2-40, y:bHeight-16, w:80, h:10, speed:6, dx:0};
-  ball={x:bWidth/2, y:bHeight-30, r:6, dx:3, dy:-3};
+  balls=[makeBall()];
   scoreBreakout=0; livesBreakout=3;
   document.getElementById('scoreBreakout').textContent='0';
   document.getElementById('livesBreakout').textContent='3';
+  document.getElementById('ballsBreakout').textContent='1';
   document.getElementById('overBreakout').classList.remove('show');
   document.getElementById('overBreakout').textContent='GAME OVER';
   bricks=[];
@@ -577,79 +835,349 @@ function initBreakout(){
     }
   }
   if(breakoutLoop) cancelAnimationFrame(breakoutLoop);
+  canvas.focus();
   breakoutStep();
+}
+function makeBall(angleOffset){
+  const angle = (-Math.PI/2) + (angleOffset||0);
+  return {
+    x:bWidth/2, y:bHeight-30, r:6,
+    dx:Math.cos(angle)*BASE_SPEED, dy:Math.sin(angle)*BASE_SPEED
+  };
+}
+function clampSpeed(ball){
+  const mag=Math.hypot(ball.dx, ball.dy);
+  if(mag>MAX_SPEED){
+    const s=MAX_SPEED/mag;
+    ball.dx*=s; ball.dy*=s;
+  }
+}
+function onPaddleHit(ball){
+  const hitPos=(ball.x-(paddle.x+paddle.w/2))/(paddle.w/2);
+  ball.dy=-Math.abs(ball.dy);
+  ball.dx = ball.dx*SPEED_GROWTH + hitPos*1.2;
+  ball.dy = ball.dy*SPEED_GROWTH;
+  clampSpeed(ball);
+  if(balls.length<MAX_BALLS){
+    const clone={x:ball.x, y:ball.y-14, r:6, dx:-ball.dx*0.8 + (Math.random()-0.5)*1.5, dy:ball.dy};
+    clampSpeed(clone);
+    balls.push(clone);
+    document.getElementById('ballsBreakout').textContent=String(balls.length);
+  }
 }
 function breakoutStep(){
   bCtx.fillStyle='#0c0a16'; bCtx.fillRect(0,0,bWidth,bHeight);
-  // bricks
-  bricks.forEach(b=>{
+  bricks.forEach(function(b){
     if(!b.alive) return;
     bCtx.fillStyle=b.color; bCtx.shadowColor=b.color; bCtx.shadowBlur=6;
     bCtx.fillRect(b.x,b.y,b.w,b.h);
     bCtx.shadowBlur=0;
   });
-  // paddle
   paddle.x+=paddle.dx;
   paddle.x=Math.max(0, Math.min(bWidth-paddle.w, paddle.x));
   bCtx.fillStyle='#4ce0d2'; bCtx.shadowColor='#4ce0d2'; bCtx.shadowBlur=8;
   bCtx.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
   bCtx.shadowBlur=0;
-  // ball
-  ball.x+=ball.dx; ball.y+=ball.dy;
-  if(ball.x<ball.r||ball.x>bWidth-ball.r) ball.dx*=-1;
-  if(ball.y<ball.r) ball.dy*=-1;
-  if(ball.y+ball.r>=paddle.y && ball.y+ball.r<=paddle.y+paddle.h && ball.x>=paddle.x && ball.x<=paddle.x+paddle.w){
-    ball.dy=-Math.abs(ball.dy);
-    const hitPos=(ball.x-(paddle.x+paddle.w/2))/(paddle.w/2);
-    ball.dx = hitPos*4;
-  }
-  bricks.forEach(b=>{
-    if(!b.alive) return;
-    if(ball.x>b.x && ball.x<b.x+b.w && ball.y>b.y && ball.y<b.y+b.h){
-      b.alive=false; ball.dy*=-1;
-      scoreBreakout+=10; document.getElementById('scoreBreakout').textContent=scoreBreakout;
-    }
-  });
-  bCtx.fillStyle='#ff4fa3'; bCtx.shadowColor='#ff4fa3'; bCtx.shadowBlur=10;
-  bCtx.beginPath(); bCtx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); bCtx.fill();
-  bCtx.shadowBlur=0;
 
-  if(ball.y>bHeight){
-    livesBreakout--; document.getElementById('livesBreakout').textContent=livesBreakout;
+  for(let i=balls.length-1;i>=0;i--){
+    const ball=balls[i];
+    ball.x+=ball.dx; ball.y+=ball.dy;
+    if(ball.x<ball.r||ball.x>bWidth-ball.r) ball.dx*=-1;
+    if(ball.y<ball.r) ball.dy*=-1;
+    if(ball.dy>0 && ball.y+ball.r>=paddle.y && ball.y+ball.r<=paddle.y+paddle.h+8 && ball.x>=paddle.x && ball.x<=paddle.x+paddle.w){
+      onPaddleHit(ball);
+    }
+    bricks.forEach(function(b){
+      if(!b.alive) return;
+      if(ball.x>b.x && ball.x<b.x+b.w && ball.y>b.y && ball.y<b.y+b.h){
+        b.alive=false; ball.dy*=-1;
+        scoreBreakout+=10; document.getElementById('scoreBreakout').textContent=String(scoreBreakout);
+      }
+    });
+    bCtx.fillStyle='#ff4fa3'; bCtx.shadowColor='#ff4fa3'; bCtx.shadowBlur=10;
+    bCtx.beginPath(); bCtx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); bCtx.fill();
+    bCtx.shadowBlur=0;
+    if(ball.y>bHeight){
+      balls.splice(i,1);
+      document.getElementById('ballsBreakout').textContent=String(balls.length);
+    }
+  }
+
+  if(balls.length===0){
+    livesBreakout--; document.getElementById('livesBreakout').textContent=String(livesBreakout);
     if(livesBreakout<=0){
       document.getElementById('overBreakout').classList.add('show');
       return;
     }
-    ball.x=bWidth/2; ball.y=bHeight-30; ball.dx=3; ball.dy=-3;
+    balls=[makeBall()];
+    document.getElementById('ballsBreakout').textContent='1';
   }
-  if(bricks.every(b=>!b.alive)){
+  if(bricks.every(function(b){ return !b.alive; })){
     document.getElementById('overBreakout').classList.add('show');
     document.getElementById('overBreakout').textContent='CLEAR!';
     return;
   }
   breakoutLoop=requestAnimationFrame(breakoutStep);
 }
-window.addEventListener('keydown', e=>{
+window.addEventListener('keydown', function(e){
   const active=document.getElementById('screen-breakout').classList.contains('active');
   if(!active) return;
-  if(e.key==='ArrowLeft') paddle.dx=-paddle.speed;
-  else if(e.key==='ArrowRight') paddle.dx=paddle.speed;
+  const k=e.key.toLowerCase();
+  if(k==='a') paddle.dx=-paddle.speed;
+  else if(k==='d') paddle.dx=paddle.speed;
 });
-window.addEventListener('keyup', e=>{
+window.addEventListener('keyup', function(e){
   const active=document.getElementById('screen-breakout').classList.contains('active');
   if(!active) return;
-  if(e.key==='ArrowLeft'||e.key==='ArrowRight') paddle.dx=0;
+  const k=e.key.toLowerCase();
+  if(k==='a'||k==='d') paddle.dx=0;
 });
-document.getElementById('breakoutCanvas').addEventListener('mousemove', e=>{
+document.getElementById('breakoutCanvas').addEventListener('mousemove', function(e){
   const rect=e.target.getBoundingClientRect();
   paddle.x=(e.clientX-rect.left)-paddle.w/2;
 });
-document.getElementById('breakoutCanvas').addEventListener('touchmove', e=>{
+document.getElementById('breakoutCanvas').addEventListener('touchmove', function(e){
   e.preventDefault();
   const rect=e.target.getBoundingClientRect();
   paddle.x=(e.touches[0].clientX-rect.left)-paddle.w/2;
 },{passive:false});
 document.getElementById('restartBreakout').addEventListener('click', initBreakout);
+const adpad=document.getElementById('breakoutAdpad');
+adpad.querySelectorAll('button').forEach(function(btn){
+  const dir=parseInt(btn.dataset.dir,10);
+  btn.addEventListener('touchstart', function(e){ e.preventDefault(); paddle.dx=dir*paddle.speed; }, {passive:false});
+  btn.addEventListener('touchend', function(e){ e.preventDefault(); paddle.dx=0; }, {passive:false});
+});
+
+/* ============ WORD CHAIN (끝말잇기) — 그래프 탐색 AI ============ */
+const WC_WORDS=["가방","가족","가수","가을","가게","나무","나비","나라","나이","다리","다람쥐","다이어트","라디오","라면","라켓","마음","마차","마을","마늘","바다","바나나","바람","바지","사과","사자","사탕","사람","아이","아빠","아침","아기","자동차","자유","자전거","자매","차표","차량","차이","카드","카메라","카레","타조","타워","타이어","파도","파랑","파티","파일","하늘","하마","하루","하나","방울","방학","방귀","족발","수박","수건","수영","수학","게임","게시판","무지개","무늬","무료","비누","비둘기","비밀","이불","이야기","이름","쥐포","리본","리모컨","리듬","트럭","트리","오리","오이","오빠","오후","면허증","면접","음악","음식","지구","지도","지갑","지붕","탕수육","기차","기린","기억","기타","유리","유치원","유명","거울","거미","거북이","매미","매일","표범","표정","양파","양말","양치","드라마","드론","레몬","레고","조개","조각","조종사","도시","도토리","도로","티셔츠","티끌","일요일","일기","일출","루비","누나","누룽지","밀가루","불꽃","불고기","포도","포크","본보기","후추","후식","접시","악어","악수","식당","식물","구름","구두","구슬","갑옷","육교","육지","대나무","대학교","대답","린스","명절","울타리","미술","미역","미소","미인","범인","범위","정원","정답","말투","말씀","치과","치마","치아","고양이","고구마","고래","고추","각도","각오","시계","시장","시골","노래","노트","노인","출발","출구","강아지","강물","화분","화장실","화가","어린이","어머니","어항","교실","교과서","생일","생각","꽃병","꽃잎","크기","크레용","추석","추억","당근","당나귀","물고기","물감","답장","과일","과학","래퍼","근처","귀신","계란","장미","장난감","분수","실수","신발","개구리","개미","개나리","학교","학생","학원","발가락","발표","발톱","원숭이","감자","억지","침대","영수증","위치","임금","소리","역할","스키","두부","절약","술래","원피스"];
+const DUEUM_PAIRS=[['라','나'],['랴','야'],['러','여'],['려','여'],['록','녹'],['론','논'],['롱','농'],['료','요'],['루','누'],['류','유'],['륙','육'],['륜','윤'],['률','율'],['릉','능'],['리','이'],['린','인'],['림','임'],['립','입'],['랑','낭'],['래','내'],['량','양'],['력','역'],['련','연'],['렬','열'],['렴','염'],['렵','엽'],['령','영'],['례','예'],['로','노']];
+function wcEquivChars(ch){
+  const set=new Set([ch]);
+  DUEUM_PAIRS.forEach(function(p){ if(p[0]===ch) set.add(p[1]); if(p[1]===ch) set.add(p[0]); });
+  return Array.from(set);
+}
+function wcLast(w){ return w[w.length-1]; }
+function wcFirst(w){ return w[0]; }
+let wcUsed, wcCurrent, wcTurns, wcOverFlag;
+function wcLog(text, cls){
+  const log=document.getElementById('wcLog');
+  const div=document.createElement('div');
+  div.className='msg '+cls;
+  div.textContent=text;
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+}
+function initWordChain(){
+  wcUsed=new Set();
+  wcTurns=0;
+  wcOverFlag=false;
+  document.getElementById('wcLog').innerHTML='';
+  document.getElementById('wcCount').textContent='0';
+  document.getElementById('wcOver').classList.remove('show');
+  document.getElementById('wcInput').disabled=false;
+  document.getElementById('wcSubmit').disabled=false;
+  document.getElementById('wcHint').textContent='AI가 먼저 단어를 냅니다. 마지막 글자로 시작하는 단어를 입력하세요 (두음법칙 허용)';
+  wcLog('끝말잇기를 시작할게요!', 'system');
+  const starter=WC_WORDS[Math.floor(Math.random()*WC_WORDS.length)];
+  wcUsed.add(starter);
+  wcCurrent=starter;
+  wcLog(starter, 'ai');
+  document.getElementById('wcInput').focus();
+}
+function wcPickAiWord(requiredChar){
+  const accept=wcEquivChars(requiredChar);
+  const candidates=WC_WORDS.filter(function(w){ return !wcUsed.has(w) && accept.includes(wcFirst(w)); });
+  if(candidates.length===0) return null;
+  let best=null, bestScore=Infinity;
+  candidates.forEach(function(c){
+    const nAccept=wcEquivChars(wcLast(c));
+    const nextCount=WC_WORDS.filter(function(w){ return !wcUsed.has(w) && w!==c && nAccept.includes(wcFirst(w)); }).length;
+    if(nextCount<bestScore){ bestScore=nextCount; best=c; }
+  });
+  return best;
+}
+function wcEndGame(text){
+  wcOverFlag=true;
+  wcLog(text,'system');
+  document.getElementById('wcOver').classList.add('show');
+  document.getElementById('wcInput').disabled=true;
+  document.getElementById('wcSubmit').disabled=true;
+}
+function wcSubmitWord(){
+  if(wcOverFlag) return;
+  const input=document.getElementById('wcInput');
+  const word=input.value.trim();
+  input.value='';
+  if(!word) return;
+  if(word.length<2){ wcLog('두 글자 이상의 단어를 입력하세요.', 'system'); return; }
+  const required=wcLast(wcCurrent);
+  const accept=wcEquivChars(required);
+  if(!accept.includes(wcFirst(word))){
+    wcLog(word, 'player');
+    wcEndGame('"'+required+'"(으)로 시작하지 않는 단어예요. AI 승리!');
+    return;
+  }
+  if(wcUsed.has(word)){
+    wcLog(word, 'player');
+    wcEndGame('이미 사용한 단어예요. AI 승리!');
+    return;
+  }
+  if(!WC_WORDS.includes(word)){
+    wcLog(word, 'player');
+    wcEndGame('사전에 없는 단어예요 (등록된 단어 목록 기준). AI 승리!');
+    return;
+  }
+  wcUsed.add(word);
+  wcCurrent=word;
+  wcTurns++;
+  document.getElementById('wcCount').textContent=String(wcTurns);
+  wcLog(word, 'player');
+  const nextChar=wcLast(word);
+  const aiWord=wcPickAiWord(nextChar);
+  if(!aiWord){
+    wcEndGame('AI가 "'+nextChar+'"(으)로 시작하는 단어를 더 못 찾았어요. 플레이어 승리! 🎉');
+    return;
+  }
+  wcUsed.add(aiWord);
+  wcCurrent=aiWord;
+  wcTurns++;
+  document.getElementById('wcCount').textContent=String(wcTurns);
+  setTimeout(function(){ wcLog(aiWord, 'ai'); }, 350);
+}
+document.getElementById('wcSubmit').addEventListener('click', wcSubmitWord);
+document.getElementById('wcInput').addEventListener('keydown', function(e){ if(e.key==='Enter') wcSubmitWord(); });
+document.getElementById('wcRestart').addEventListener('click', initWordChain);
+
+/* ============ CALL MY NAME (양세찬 게임) — 태그 기반 스무고개 AI ============ */
+const CN_CHARACTERS=[
+  {name:'뽀로로', tags:['가상인물','동물','펭귄','만화','한국','아이']},
+  {name:'스폰지밥', tags:['가상인물','해양생물','만화','외국','아이']},
+  {name:'피카츄', tags:['가상인물','동물','포켓몬','만화','일본','아이']},
+  {name:'도라에몽', tags:['가상인물','로봇','고양이','만화','일본','아이']},
+  {name:'헐크', tags:['가상인물','히어로','남성','영화','외국','마블']},
+  {name:'아이언맨', tags:['가상인물','히어로','남성','영화','외국','마블','부자']},
+  {name:'해리포터', tags:['가상인물','남성','마법사','소설','영화','외국']},
+  {name:'신데렐라', tags:['가상인물','여성','동화','공주','외국']},
+  {name:'세종대왕', tags:['실존인물','남성','역사인물','한국','왕']},
+  {name:'이순신', tags:['실존인물','남성','역사인물','한국','장군']},
+  {name:'아이유', tags:['실존인물','여성','가수','연예인','한국']},
+  {name:'손흥민', tags:['실존인물','남성','운동선수','축구','한국']},
+  {name:'스티브 잡스', tags:['실존인물','남성','사업가','외국','IT']},
+  {name:'아인슈타인', tags:['실존인물','남성','과학자','외국','역사인물']},
+  {name:'유재석', tags:['실존인물','남성','방송인','연예인','한국']},
+  {name:'김연아', tags:['실존인물','여성','운동선수','피겨','한국']},
+  {name:'짱구', tags:['가상인물','남성','만화','아이','일본']},
+  {name:'미키마우스', tags:['가상인물','동물','만화','외국','디즈니']},
+  {name:'슈퍼맨', tags:['가상인물','히어로','남성','영화','외국']},
+  {name:'백설공주', tags:['가상인물','여성','동화','공주','외국']},
+  {name:'토르', tags:['가상인물','히어로','남성','영화','외국','마블']},
+  {name:'배트맨', tags:['가상인물','히어로','남성','영화','외국']}
+];
+const CN_KEYWORD_MAP=[
+  ['남자','남성'],['남성','남성'],['여자','여성'],['여성','여성'],
+  ['실존','실존인물'],['실제','실존인물'],['진짜 사람','실존인물'],
+  ['가상','가상인물'],['만화','만화'],['애니','만화'],['캐릭터','가상인물'],
+  ['한국','한국'],['국내','한국'],['외국','외국'],['해외','외국'],
+  ['동물','동물'],['로봇','로봇'],
+  ['히어로','히어로'],['영웅','히어로'],['슈퍼','히어로'],
+  ['가수','가수'],['노래','가수'],
+  ['운동','운동선수'],['스포츠','운동선수'],['선수','운동선수'],['축구','축구'],['피겨','피겨'],
+  ['과학자','과학자'],['사업가','사업가'],['기업가','사업가'],['부자','부자'],['it','IT'],
+  ['역사','역사인물'],['옛날','역사인물'],['왕','왕'],['임금','왕'],['장군','장군'],
+  ['디즈니','디즈니'],['마블','마블'],['소설','소설'],
+  ['방송','방송인'],['예능','방송인'],['공주','공주'],['일본','일본'],
+  ['아이','아이'],['어린이','아이'],['마법사','마법사']
+];
+let cnSecret, cnCount, cnOverFlag, cnHintsUsed;
+function cnLogMsg(text, cls){
+  const log=document.getElementById('cnLog');
+  const div=document.createElement('div');
+  div.className='msg '+cls;
+  div.textContent=text;
+  log.appendChild(div);
+  log.scrollTop=log.scrollHeight;
+}
+function initCallName(){
+  cnSecret=CN_CHARACTERS[Math.floor(Math.random()*CN_CHARACTERS.length)];
+  cnCount=0; cnOverFlag=false; cnHintsUsed=0;
+  document.getElementById('cnLog').innerHTML='';
+  document.getElementById('cnCount').textContent='0';
+  document.getElementById('cnOver').classList.remove('show');
+  document.getElementById('cnInput').disabled=false;
+  document.getElementById('cnGuessInput').disabled=false;
+  document.getElementById('cnSubmit').disabled=false;
+  document.getElementById('cnGuessSubmit').disabled=false;
+  document.getElementById('cnHint').textContent='AI가 인물을 하나 정했어요. 예/아니오로 답할 수 있는 질문을 던져서 정체를 추리하세요 (최대 20번)';
+  cnLogMsg('인물을 정했어요! 질문을 시작하세요 (예: "남자인가요?", "실존 인물인가요?")', 'system');
+}
+function cnEndGame(text){
+  cnOverFlag=true;
+  cnLogMsg(text, 'system');
+  document.getElementById('cnOver').classList.add('show');
+  document.getElementById('cnInput').disabled=true;
+  document.getElementById('cnGuessInput').disabled=true;
+  document.getElementById('cnSubmit').disabled=true;
+  document.getElementById('cnGuessSubmit').disabled=true;
+}
+function cnAskQuestion(){
+  if(cnOverFlag) return;
+  const input=document.getElementById('cnInput');
+  const q=input.value.trim();
+  input.value='';
+  if(!q) return;
+  cnLogMsg(q, 'player');
+  cnCount++;
+  document.getElementById('cnCount').textContent=String(cnCount);
+  const qLower=q.toLowerCase();
+  let matchedTag=null;
+  for(let i=0;i<CN_KEYWORD_MAP.length;i++){
+    if(qLower.includes(CN_KEYWORD_MAP[i][0])){ matchedTag=CN_KEYWORD_MAP[i][1]; break; }
+  }
+  let answer;
+  if(matchedTag){
+    answer = cnSecret.tags.includes(matchedTag) ? '네, 맞아요!' : '아니요, 아니에요.';
+  } else {
+    answer = '음... 그 질문으로는 판단하기 어려워요. 다른 질문을 해볼래요?';
+  }
+  setTimeout(function(){ cnLogMsg(answer, 'ai'); }, 300);
+  if(cnCount>=20){
+    setTimeout(function(){ cnEndGame('20번의 질문을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.'); }, 500);
+  }
+}
+function cnSubmitGuess(){
+  if(cnOverFlag) return;
+  const input=document.getElementById('cnGuessInput');
+  const guess=input.value.trim();
+  input.value='';
+  if(!guess) return;
+  cnLogMsg('정답: '+guess, 'player');
+  const norm=function(s){ return s.replace(/\s/g,'').toLowerCase(); };
+  if(norm(guess)===norm(cnSecret.name)){
+    setTimeout(function(){ cnEndGame('정답입니다! 🎉 "'+cnSecret.name+'" 이었어요. 질문 '+cnCount+'번 만에 맞혔어요!'); }, 300);
+  } else {
+    cnCount++;
+    document.getElementById('cnCount').textContent=String(cnCount);
+    setTimeout(function(){ cnLogMsg('땡! 아니에요.', 'ai'); }, 300);
+    if(cnCount>=20){
+      setTimeout(function(){ cnEndGame('20번을 다 썼어요! 정답은 "'+cnSecret.name+'" 였어요.'); }, 500);
+    }
+  }
+}
+document.getElementById('cnSubmit').addEventListener('click', cnAskQuestion);
+document.getElementById('cnInput').addEventListener('keydown', function(e){ if(e.key==='Enter') cnAskQuestion(); });
+document.getElementById('cnGuessSubmit').addEventListener('click', cnSubmitGuess);
+document.getElementById('cnGuessInput').addEventListener('keydown', function(e){ if(e.key==='Enter') cnSubmitGuess(); });
+document.getElementById('cnHintBtn').addEventListener('click', function(){
+  if(cnOverFlag) return;
+  const unused=cnSecret.tags.filter(function(t,i){ return i>=cnHintsUsed; });
+  if(unused.length===0){ cnLogMsg('더 이상 힌트가 없어요!', 'system'); return; }
+  cnLogMsg('힌트: "'+unused[0]+'" 관련이 있어요', 'system');
+  cnHintsUsed++;
+  cnCount++;
+  document.getElementById('cnCount').textContent=String(cnCount);
+});
+document.getElementById('cnRestart').addEventListener('click', initCallName);
 </script>
 </body>
 </html>
